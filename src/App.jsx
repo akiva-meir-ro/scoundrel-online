@@ -106,19 +106,20 @@ export default function App() {
   }, [room, deck, health, status, forcedRetreat, canRun]);
 
   const endGame = (endStatus, reason) => {
-    setStatus(endStatus);
-    setLoseReason(reason);
-    if (endStatus === 'won') {
-      const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
-      const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
-      setScore(health + bonus);
-    } else {
-      const allRemaining = [...deck, ...room];
-      const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
-      const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
-      setScore(health - totalMonsterValue);
-    }
-  };
+  setStatus(endStatus);
+  setLoseReason(reason);
+  if (endStatus === 'won') {
+    const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
+    const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
+    setScore(health + bonus);
+  } else {
+    const allRemaining = [...deck, ...room];
+    const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
+    const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
+    setScore(health - totalMonsterValue);
+    setLastKilled(0);  // ← New line: Reset last killed enemy value on loss
+  }
+};
 
   const getRankMessage = () => {
     if (status === 'lost') {
