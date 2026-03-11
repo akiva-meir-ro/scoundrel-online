@@ -88,55 +88,59 @@ export default function App() {
 
   const forcedRetreat = status === 'playing' && room.filter(c => c.suit === 'hearts').length >= 3;
 
+  // --- LOGIC: GAME STATE WATCHER ---
   useEffect(() => {
     if (status !== 'playing') return;
+
+    // 1. Health check (The "Death" check)
     if (health <= 0) {
-      setHealth(0);
-      endGame('lost', "You succumbed to your injuries in the dungeon.");
+      setHealth(0); 
+      // We pass '0' explicitly because state updates are async 
+      // and we want the score logic to use 0, not -3.
+      endGame('lost', "You succumbed to your injuries in the dungeon.", 0);
       return;
     }
+
+    // 2. Victory check
     const remainingMonstersInRoom = room.filter(c => c.suit === 'clubs' || c.suit === 'spades');
     if (deck.length === 0 && remainingMonstersInRoom.length === 0) {
-      endGame('won', "You survived the dungeon!");
+      endGame('won', "You survived the dungeon!", health);
       return;
     }
+
+    // 3. Trapped check
     if (forcedRetreat && !canRun) {
-      endGame('lost', "You were trapped in a room with too many potions and were too tired to run away!");
+      endGame('lost', "You were trapped in a room with too many potions and were too tired to run away!", health);
       return;
     }
   }, [room, deck, health, status, forcedRetreat, canRun]);
 
-  const endGame = (endStatus, reason) => {
+  // --- LOGIC: END GAME & SCORING ---
+  const endGame = (endStatus, reason, finalHealth) => {
     setStatus(endStatus);
     setLoseReason(reason);
+    
+    // Use the override (finalHealth) if provided, otherwise fallback to current state
+    const effectiveHealth = finalHealth !== undefined ? finalHealth : health;
 
-    console.group(`%c Game Ended: ${endStatus.toUpperCase()} `, 'background: #333; color: #bada55; font-weight: bold;');
+    console.group(`%c Game Ended: ${endStatus.toUpperCase()} `, 'background: #1e1e1e; color: #818cf8; font-weight: bold; padding: 2px 4px;');
     console.log("Reason:", reason);
+    console.log("Calculating score with Health:", effectiveHealth);
 
     if (endStatus === 'won') {
       const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
       const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
-      const finalScore = health + bonus;
-
-      console.log("Winning Logic:");
-      console.log(`- Current Health: ${health}`);
-      console.log(`- Hearts left in room: [${remainingHearts.join(', ')}]`);
-      console.log(`- Highest Heart Bonus: ${bonus}`);
-      console.log(`- Total Score (Health + Bonus): ${finalScore}`);
-
+      const finalScore = effectiveHealth + bonus;
+      
+      console.log(`Victory Score: ${effectiveHealth} (Health) + ${bonus} (Max Heart Bonus) = ${finalScore}`);
       setScore(finalScore);
     } else {
       const allRemaining = [...deck, ...room];
       const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
       const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
-      const finalScore = health - totalMonsterValue;
-
-      console.log("Losing Logic:");
-      console.log(`- Current Health: ${health}`);
-      console.log(`- Total Monsters Left (Deck + Room): ${remainingMonsters.length}`);
-      console.log(`- Total Monster Damage Penalty: -${totalMonsterValue}`);
-      console.log(`- Total Score (Health - Penalty): ${finalScore}`);
-
+      const finalScore = effectiveHealth - totalMonsterValue;
+      
+      console.log(`Defeat Score: ${effectiveHealth} (Health) - ${totalMonsterValue} (Remaining Monster Strength) = ${finalScore}`);
       setScore(finalScore);
       setLastKilled(0); 
     }
@@ -384,7 +388,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans select-none overflow-hidden relative">
-      {/* Exit Confirmation Modal */}
       {showExitConfirm && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-6">
           <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-in fade-in zoom-in duration-200">
