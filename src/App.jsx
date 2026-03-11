@@ -1,12 +1,180 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, Sword, ShieldAlert, Skull, Play, RefreshCw, Info, Trophy, ChevronLeft, Link as LinkIcon, Check, Copy, LogOut, X, Home } from 'lucide-react';
-import { fetchLeaderboard, submitScore } from './leaderboardApi';
+import {
+  Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
+  Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
+  ShoppingBag, Coins
+} from 'lucide-react';
+
+// --- MOCK LEADERBOARD API (In-Memory) ---
+let mockLeaderboard = [
+  { id: '1', name: 'Dungeon Master', score: 45 },
+  { id: '2', name: 'Lucky Thief', score: 25 },
+  { id: '3', name: 'Brave Knight', score: 12 },
+];
+
+const fetchLeaderboard = async () => {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return [...mockLeaderboard].sort((a, b) => b.score - a.score);
+};
+
+const submitScore = async (name, score) => {
+  await new Promise(resolve => setTimeout(resolve, 400));
+  const newEntry = { id: Date.now().toString(), name, score };
+  mockLeaderboard.push(newEntry);
+  return [...mockLeaderboard].sort((a, b) => b.score - a.score);
+};
+// ----------------------------------------
+
+const SKINS = [
+  {
+    id: 'default', name: 'Classic', price: 0,
+    bg: 'bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]', border: 'border-slate-200',
+    goodColor: 'text-red-600', badColor: 'text-slate-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'obsidian', name: 'Obsidian', price: 100,
+    bg: 'bg-slate-900 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] [background-size:24px_24px]', border: 'border-slate-600',
+    goodColor: 'text-red-400', badColor: 'text-slate-300',
+    font: 'font-sans', rounded: 'rounded-md', shadow: 'shadow-xl'
+  },
+  {
+    id: 'gilded', name: 'Gilded Royal', price: 250,
+    bg: 'bg-gradient-to-br from-yellow-100 via-yellow-200 to-yellow-400 bg-[radial-gradient(ellipse_at_top_left,rgba(255,255,255,0.6),transparent_50%)]', border: 'border-yellow-500 border-2',
+    goodColor: 'text-red-700', badColor: 'text-amber-950',
+    font: 'font-serif', rounded: 'rounded-sm', shadow: 'shadow-2xl',
+    numeralSystem: 'roman'
+  },
+  {
+    id: 'blood', name: 'Blood Magic', price: 400,
+    bg: 'bg-red-950 bg-[radial-gradient(circle_at_center,rgba(153,27,27,0.4)_0,transparent_100%),repeating-linear-gradient(45deg,transparent,transparent_2px,rgba(0,0,0,0.1)_2px,rgba(0,0,0,0.1)_4px)]', border: 'border-red-900 border-2',
+    goodColor: 'text-red-400', badColor: 'text-slate-300',
+    font: 'font-serif', rounded: 'rounded-sm', shadow: 'shadow-[0_0_15px_rgba(153,27,27,0.5)]',
+    icons: { hearts: '🩸', diamonds: '🗡️', clubs: '🐺', spades: '🦇' }
+  },
+  {
+    id: 'druid', name: 'Druid Grove', price: 500,
+    bg: 'bg-green-950 bg-[radial-gradient(#14532d_1px,transparent_1px)] [background-size:16px_16px]', border: 'border-green-800 border-2',
+    goodColor: 'text-emerald-400', badColor: 'text-amber-700',
+    font: 'font-serif', rounded: 'rounded-xl', shadow: 'shadow-[0_0_10px_rgba(20,83,45,0.8)]',
+    icons: { hearts: '💚', diamonds: '🌿', clubs: '🐺', spades: '🐻' }
+  },
+  {
+    id: 'cyber', name: 'Cyberpunk', price: 750,
+    bg: 'bg-slate-950 bg-[linear-gradient(to_right,#06b6d4_1px,transparent_1px),linear-gradient(to_bottom,#ec4899_1px,transparent_1px)] [background-size:1.5rem_1.5rem] [background-position:center_center]', border: 'border-cyan-500 border-2 shadow-[0_0_10px_rgba(6,182,212,0.5)]',
+    goodColor: 'text-pink-500 drop-shadow-[0_0_5px_rgba(236,72,153,0.8)]', badColor: 'text-cyan-400 drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]',
+    font: 'font-mono uppercase', rounded: 'rounded-none', shadow: 'shadow-none',
+    numeralSystem: 'binary'
+  },
+  {
+    id: 'frost', name: 'Permafrost', price: 900,
+    bg: 'bg-cyan-50 bg-[radial-gradient(circle_at_50%_50%,rgba(103,232,249,0.2)_0%,transparent_50%),linear-gradient(45deg,transparent_45%,rgba(255,255,255,0.8)_50%,transparent_55%)] [background-size:100%_100%,20px_20px]', border: 'border-cyan-300 border-2',
+    goodColor: 'text-blue-500', badColor: 'text-cyan-800',
+    font: 'font-sans', rounded: 'rounded-lg', shadow: 'shadow-[0_0_15px_rgba(103,232,249,0.5)]',
+    icons: { hearts: '💙', diamonds: '🧊', clubs: '🥶', spades: '❄️' }
+  },
+  {
+    id: 'pirate', name: 'Pirate Tale', price: 1200,
+    bg: 'bg-[#e6d5a7] bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,rgba(139,90,43,0.1)_40px,rgba(139,90,43,0.1)_80px),linear-gradient(to_bottom,rgba(0,0,0,0.05)_0%,transparent_100%)]', border: 'border-[#8b5a2b] border-4',
+    goodColor: 'text-red-800', badColor: 'text-[#3e2723]',
+    font: 'font-serif font-bold', rounded: 'rounded-none', shadow: 'shadow-2xl',
+    icons: { hearts: '🍎', diamonds: '⚔️', clubs: '🐙', spades: '☠️' }
+  },
+  {
+    id: 'steampunk', name: 'Clockwork', price: 1500,
+    bg: 'bg-[#3e2723] bg-[radial-gradient(circle_at_30%_30%,rgba(255,179,0,0.2)_0%,transparent_30%),radial-gradient(circle_at_70%_70%,rgba(255,179,0,0.15)_0%,transparent_40%),repeating-linear-gradient(45deg,rgba(0,0,0,0.2)_0px,rgba(0,0,0,0.2)_2px,transparent_2px,transparent_4px)]', border: 'border-[#ffb300] border-4',
+    goodColor: 'text-[#ffb300]', badColor: 'text-[#bcaaa4]',
+    font: 'font-serif font-bold', rounded: 'rounded-md', shadow: 'shadow-2xl',
+    icons: { hearts: '🤎', diamonds: '🔧', clubs: '⚙️', spades: '🕰️' }
+  },
+  {
+    id: 'arcade', name: 'Neon Arcade', price: 2000,
+    bg: 'bg-black bg-[radial-gradient(circle_at_center,rgba(217,70,239,0.15)_0,transparent_100%),repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(163,230,53,0.1)_2px,rgba(163,230,53,0.1)_4px)]', border: 'border-fuchsia-500 border-2 shadow-[0_0_15px_rgba(217,70,239,0.5)]',
+    goodColor: 'text-lime-400 drop-shadow-[0_0_8px_rgba(163,230,53,1)]', badColor: 'text-fuchsia-500 drop-shadow-[0_0_8px_rgba(217,70,239,1)]',
+    font: 'font-mono font-black', rounded: 'rounded-sm', shadow: 'shadow-none',
+    icons: { hearts: '💖', diamonds: '💎', clubs: '👾', spades: '🛸' },
+    numeralSystem: 'binary'
+  },
+  {
+    id: 'monochrome', name: 'Noir', price: 2500,
+    bg: 'bg-zinc-950 bg-[repeating-linear-gradient(45deg,transparent,transparent_5px,rgba(255,255,255,0.05)_5px,rgba(255,255,255,0.05)_10px)]', border: 'border-zinc-300 border-2',
+    goodColor: 'text-white', badColor: 'text-zinc-500',
+    font: 'font-mono', rounded: 'rounded-none', shadow: 'shadow-none',
+    icons: { hearts: '🤍', diamonds: '🔪', clubs: '🎱', spades: '🕷️' },
+    numeralSystem: 'hex'
+  },
+  {
+    id: 'hologram', name: 'Holographic', price: 3000,
+    bg: 'bg-gradient-to-tr from-cyan-200 via-fuchsia-200 to-yellow-200 bg-[linear-gradient(90deg,rgba(255,255,255,0.5)_0%,transparent_20%,transparent_80%,rgba(255,255,255,0.5)_100%),repeating-linear-gradient(0deg,transparent,transparent_2px,rgba(255,255,255,0.3)_2px,rgba(255,255,255,0.3)_4px)] backdrop-blur-sm opacity-90', border: 'border-white/60 border-2 backdrop-blur-sm',
+    goodColor: 'text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]', badColor: 'text-slate-800 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]',
+    font: 'font-sans italic font-black', rounded: 'rounded-3xl', shadow: 'shadow-xl',
+    icons: { hearts: '🫧', diamonds: '✨', clubs: '🌪️', spades: '🌑' }
+  },
+  {
+    id: 'toxic', name: 'Biohazard', price: 3500,
+    bg: 'bg-lime-950 bg-[radial-gradient(circle_at_50%_0%,rgba(132,204,22,0.3)_0,transparent_50%),radial-gradient(circle_at_0%_100%,rgba(22,163,74,0.3)_0,transparent_50%)]', border: 'border-lime-500 border-2 border-dashed',
+    goodColor: 'text-lime-400 drop-shadow-[0_0_5px_rgba(132,204,22,0.8)]', badColor: 'text-green-700',
+    font: 'font-mono font-bold', rounded: 'rounded-sm', shadow: 'shadow-[0_0_20px_rgba(132,204,22,0.4)]',
+    icons: { hearts: '🧪', diamonds: '💉', clubs: '🧟', spades: '☣️' }
+  },
+  {
+    id: 'desert', name: 'Pharaoh\'s Tomb', price: 4000,
+    bg: 'bg-amber-100 bg-[repeating-linear-gradient(0deg,rgba(217,119,6,0.05)_0px,rgba(217,119,6,0.05)_1px,transparent_1px,transparent_10px)]', border: 'border-yellow-600 border-2',
+    goodColor: 'text-red-700', badColor: 'text-amber-900',
+    font: 'font-serif', rounded: 'rounded-sm', shadow: 'shadow-md',
+    icons: { hearts: '🏺', diamonds: '🪃', clubs: '🦂', spades: '🐍' },
+    numeralSystem: 'roman'
+  },
+  {
+    id: 'infernal', name: 'Abyssal', price: 5000,
+    bg: 'bg-orange-950 bg-[radial-gradient(ellipse_at_bottom,rgba(234,88,12,0.5)_0,transparent_60%),repeating-radial-gradient(circle_at_50%_100%,transparent,transparent_5px,rgba(0,0,0,0.2)_5px,rgba(0,0,0,0.2)_10px)]', border: 'border-orange-600 border-t-4 border-b-4',
+    goodColor: 'text-orange-400 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]', badColor: 'text-red-800',
+    font: 'font-serif font-black', rounded: 'rounded-none', shadow: 'shadow-[0_0_30px_rgba(234,88,12,0.6)]',
+    icons: { hearts: '❤️‍🔥', diamonds: '🔱', clubs: '👹', spades: '😈' }
+  },
+  {
+    id: 'samurai', name: 'Ronin', price: 6000,
+    bg: 'bg-neutral-100 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.05)_0%,transparent_100%),repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]', border: 'border-red-700 border-l-8 border-r-8',
+    goodColor: 'text-red-600', badColor: 'text-neutral-900',
+    font: 'font-serif', rounded: 'rounded-none', shadow: 'shadow-xl',
+    icons: { hearts: '⛩️', diamonds: '🗡️', clubs: '👺', spades: '🐉' },
+    numeralSystem: 'kanji'
+  },
+  {
+    id: 'celestial', name: 'Cosmic', price: 7500,
+    bg: 'bg-indigo-950 bg-[radial-gradient(rgba(255,255,255,0.3)_1px,transparent_1px),radial-gradient(rgba(255,255,255,0.3)_1px,transparent_1px)] [background-size:20px_20px] [background-position:0_0,10px_10px]', border: 'border-purple-400 border-2',
+    goodColor: 'text-fuchsia-300 drop-shadow-[0_0_8px_rgba(217,70,239,0.8)]', badColor: 'text-indigo-300',
+    font: 'font-sans font-light tracking-widest', rounded: 'rounded-[2rem]', shadow: 'shadow-[0_0_20px_rgba(168,85,247,0.5)]',
+    icons: { hearts: '🌠', diamonds: '💫', clubs: '👽', spades: '👾' }
+  },
+  {
+    id: 'royal', name: 'Majesty', price: 8500,
+    bg: 'bg-purple-950 bg-[repeating-linear-gradient(45deg,rgba(250,204,21,0.05)_0px,rgba(250,204,21,0.05)_2px,transparent_2px,transparent_8px),radial-gradient(circle_at_center,rgba(147,51,234,0.5)_0,transparent_100%)]', border: 'border-yellow-400 border-4',
+    goodColor: 'text-yellow-400 drop-shadow-md', badColor: 'text-purple-300',
+    font: 'font-serif', rounded: 'rounded-tl-3xl rounded-br-3xl', shadow: 'shadow-2xl',
+    icons: { hearts: '🍷', diamonds: '👑', clubs: '🦁', spades: '🦅' }
+  },
+  {
+    id: 'kawaii', name: 'Sugar Rush', price: 9000,
+    bg: 'bg-pink-100 bg-[radial-gradient(circle_at_center,rgba(244,114,182,0.2)_0%,transparent_100%),radial-gradient(#ec4899_1px,transparent_1px)] [background-size:100%_100%,16px_16px]', border: 'border-pink-400 border-4 border-dashed',
+    goodColor: 'text-pink-600', badColor: 'text-purple-500',
+    font: 'font-sans font-black', rounded: 'rounded-3xl', shadow: 'shadow-lg',
+    icons: { hearts: '💖', diamonds: '🎀', clubs: '🧸', spades: '🦄' }
+  },
+  {
+    id: 'vaporwave', name: 'A E S T H E T I C', price: 10000,
+    bg: 'bg-gradient-to-br from-fuchsia-400 via-purple-400 to-cyan-400 bg-[linear-gradient(to_bottom,transparent_50%,rgba(255,255,255,0.2)_50%)] [background-size:100%_4px]', border: 'border-yellow-300 border-4',
+    goodColor: 'text-yellow-200 drop-shadow-[2px_2px_0_rgba(236,72,153,1)]', badColor: 'text-cyan-100 drop-shadow-[2px_2px_0_rgba(168,85,247,1)]',
+    font: 'font-serif italic tracking-widest', rounded: 'rounded-sm', shadow: 'shadow-[10px_10px_0_rgba(0,0,0,0.5)]',
+    icons: { hearts: '🌺', diamonds: '💾', clubs: '🐬', spades: '🌴' }
+  }
+];
 
 const SUITS = {
-  hearts: { icon: '♥️', color: 'text-red-600', type: 'potion' },
-  diamonds: { icon: '♦️', color: 'text-red-600', type: 'weapon' },
-  clubs: { icon: '♣️', color: 'text-slate-900', type: 'monster' },
-  spades: { icon: '♠️', color: 'text-slate-900', type: 'monster' }
+  hearts: { icon: '♥️', category: 'good', type: 'potion' },
+  diamonds: { icon: '♦️', category: 'good', type: 'weapon' },
+  clubs: { icon: '♣️', category: 'bad', type: 'monster' },
+  spades: { icon: '♠️', category: 'bad', type: 'monster' }
 };
 
 const getFace = (val) => {
@@ -14,6 +182,42 @@ const getFace = (val) => {
   if (val === 12) return 'Q';
   if (val === 13) return 'K';
   if (val === 14) return 'A';
+  return val;
+};
+
+const intToRoman = (num) => {
+  if (num === 0) return "N";
+  const val = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1];
+  const sym = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+  let roman = "";
+  let i = 0;
+  while (num > 0) {
+    while (num >= val[i]) {
+      roman += sym[i];
+      num -= val[i];
+    }
+    i++;
+  }
+  return roman;
+};
+
+const intToKanji = (num) => {
+  const kanjiMap = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十'];
+  if(num >= 0 && num <= 20) return kanjiMap[num];
+  return num.toString();
+};
+
+const intToBinary = (num) => "0b" + num.toString(2);
+const intToHex = (num) => "0x" + num.toString(16).toUpperCase();
+
+const formatValue = (val, system, isFace = false) => {
+  if (!system || system === 'default') {
+      return isFace ? getFace(val) : val;
+  }
+  if (system === 'roman') return intToRoman(val);
+  if (system === 'kanji') return intToKanji(val);
+  if (system === 'binary') return intToBinary(val);
+  if (system === 'hex') return intToHex(val);
   return val;
 };
 
@@ -25,7 +229,7 @@ const buildDeck = () => {
       deck.push({ suit, value: i, id: `${suit}-${i}` });
     }
   });
-  
+
   for (let i = deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]];
@@ -43,7 +247,7 @@ export default function App() {
   const [cardsPlayed, setCardsPlayed] = useState(0);
   const [potionsUsed, setPotionsUsed] = useState(0);
   const [canRun, setCanRun] = useState(true);
-  const [status, setStatus] = useState('menu'); 
+  const [status, setStatus] = useState('menu');
   const [score, setScore] = useState(null);
   const [loseReason, setLoseReason] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
@@ -54,7 +258,17 @@ export default function App() {
   const [copied, setCopied] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  const TOTAL_CARDS_IN_GAME = 44; 
+  // --- SHOP & ECONOMY STATE ---
+  const [money, setMoney] = useState(0);
+  const [lastEarnedMoney, setLastEarnedMoney] = useState(0);
+  const [ownedSkins, setOwnedSkins] = useState(['default']);
+  const [equippedSkin, setEquippedSkin] = useState('default');
+  const [creatorCode, setCreatorCode] = useState("");
+  const [codeMessage, setCodeMessage] = useState({ text: "", type: "" });
+
+  const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
+
+  const TOTAL_CARDS_IN_GAME = 44;
 
   const loadLeaderboard = async () => {
     try {
@@ -92,23 +306,18 @@ export default function App() {
   useEffect(() => {
     if (status !== 'playing') return;
 
-    // 1. Health check (The "Death" check)
     if (health <= 0) {
-      setHealth(0); 
-      // We pass '0' explicitly because state updates are async 
-      // and we want the score logic to use 0, not -3.
+      setHealth(0);
       endGame('lost', "You succumbed to your injuries in the dungeon.", 0);
       return;
     }
 
-    // 2. Victory check
     const remainingMonstersInRoom = room.filter(c => c.suit === 'clubs' || c.suit === 'spades');
     if (deck.length === 0 && remainingMonstersInRoom.length === 0) {
       endGame('won', "You survived the dungeon!", health);
       return;
     }
 
-    // 3. Trapped check
     if (forcedRetreat && !canRun) {
       endGame('lost', "You were trapped in a room with too many potions and were too tired to run away!", health);
       return;
@@ -119,48 +328,28 @@ export default function App() {
   const endGame = (endStatus, reason, finalHealth) => {
     setStatus(endStatus);
     setLoseReason(reason);
-    
-    // Use the override (finalHealth) if provided, otherwise fallback to current state
-    const effectiveHealth = finalHealth !== undefined ? finalHealth : health;
 
-    console.group(`%c Game Ended: ${endStatus.toUpperCase()} `, 'background: #1e1e1e; color: #818cf8; font-weight: bold; padding: 2px 4px;');
-    console.log("Reason:", reason);
-    console.log("Calculating score with Health:", effectiveHealth);
+    const effectiveHealth = finalHealth !== undefined ? finalHealth : health;
+    let finalScore = 0;
 
     if (endStatus === 'won') {
       const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
       const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
-      const finalScore = effectiveHealth + bonus;
-      
-      console.log(`Victory Score: ${effectiveHealth} (Health) + ${bonus} (Max Heart Bonus) = ${finalScore}`);
-      setScore(finalScore);
+      finalScore = effectiveHealth + bonus;
     } else {
       const allRemaining = [...deck, ...room];
       const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
       const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
-      const finalScore = effectiveHealth - totalMonsterValue;
-      
-      console.log(`Defeat Score: ${effectiveHealth} (Health) - ${totalMonsterValue} (Remaining Monster Strength) = ${finalScore}`);
-      setScore(finalScore);
-      setLastKilled(0); 
+      finalScore = effectiveHealth - totalMonsterValue;
+      setLastKilled(0);
     }
-    console.groupEnd();
-  };
 
-  const getRankMessage = () => {
-    if (status === 'lost') {
-      if (score < -50) return "Dungeon Fodder: The rats will feast well tonight.";
-      if (score < -20) return "Tragic Adventurer: You almost made it past the first few rooms.";
-      if (score < 0) return "Near Miss: You were so close to the exit!";
-      return "Close Enough: You died, but at least you took some monsters with you.";
-    }
-    if (status === 'won') {
-      if (score < 10) return "Survivor: Barely made it out alive, but you're free!";
-      if (score < 20) return "Dungeon Delver: A successful run with skin still on your bones.";
-      if (score < 30) return "Master Scoundrel: You played the odds and won big.";
-      return "Legendary Hero: The dungeon trembles at the mention of your name!";
-    }
-    return "";
+    setScore(finalScore);
+
+    // Calculate money based on the provided formula
+    const earnedMoney = Math.max(0, finalScore + 100);
+    setLastEarnedMoney(earnedMoney);
+    setMoney(prev => prev + earnedMoney);
   };
 
   const handleSaveScore = async () => {
@@ -172,15 +361,14 @@ export default function App() {
       setLeaderboard(scores);
       setScoreSaved(true);
     } catch (e) {
-      setSaveError("Failed to save score. Please try again.");
-      console.error("Error saving score", e);
+      setSaveError("Failed to save score.");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleCardClick = (card) => {
-    if (forcedRetreat || cardsPlayed >= 3) return; 
+    if (forcedRetreat || cardsPlayed >= 3) return;
 
     if (selectedCardId === card.id) {
       setSelectedCardId(null);
@@ -231,64 +419,116 @@ export default function App() {
     setDeck(newDeck);
     setCardsPlayed(0);
     setPotionsUsed(0);
-    setCanRun(true); 
+    setCanRun(true);
   };
 
   const runAway = () => {
     if (!canRun || cardsPlayed > 0) return;
     const isFirstRoomEver = (deck.length + room.length) === TOTAL_CARDS_IN_GAME;
-    const newDeck = [...deck, ...room]; 
+    const newDeck = [...deck, ...room];
     const newRoom = newDeck.splice(0, 4);
     setRoom(newRoom);
     setDeck(newDeck);
     if (!isFirstRoomEver) {
-      setCanRun(false); 
+      setCanRun(false);
     }
   };
 
   const handleShare = () => {
     let shareUrl = window.location.href;
     try {
-      if (window.self !== window.top) {
-        shareUrl = document.referrer || window.location.href;
-      }
+      if (window.self !== window.top) shareUrl = document.referrer || window.location.href;
     } catch (e) {}
-    
+
     const textArea = document.createElement("textarea");
     textArea.value = shareUrl;
     textArea.style.position = "fixed";
     textArea.style.left = "-9999px";
-    textArea.style.top = "0";
     document.body.appendChild(textArea);
-    textArea.focus();
     textArea.select();
-    try {
-      document.execCommand('copy');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {}
+    try { document.execCommand('copy'); setCopied(true); setTimeout(() => setCopied(false), 2000); } catch (err) {}
     document.body.removeChild(textArea);
+  };
+
+  const handleBuySkin = (skin) => {
+    if (money >= skin.price && !ownedSkins.includes(skin.id)) {
+      setMoney(prev => prev - skin.price);
+      setOwnedSkins(prev => [...prev, skin.id]);
+      setEquippedSkin(skin.id);
+    }
+  };
+
+  const handleRedeemCode = () => {
+    if (creatorCode.trim().toLowerCase() === 'pizza pizza and more pizza') {
+      setOwnedSkins(SKINS.map(s => s.id));
+      setCodeMessage({ text: "Secret Code Accepted! All skins unlocked!", type: "success" });
+      setCreatorCode("");
+    } else {
+      setCodeMessage({ text: "Invalid creator code.", type: "error" });
+    }
+    setTimeout(() => setCodeMessage({ text: "", type: "" }), 3000);
   };
 
   const Card = ({ card }) => {
     const isSelected = selectedCardId === card.id;
-    const { icon, color, type } = SUITS[card.suit];
+    const { icon, type, category } = SUITS[card.suit];
     const isMonster = type === 'monster';
     const isRoomFull = cardsPlayed >= 3;
     let weaponValid = isMonster && weapon ? (lastKilled === null || card.value <= lastKilled) : false;
 
+    const color = category === 'good' ? currentSkin.goodColor : currentSkin.badColor;
+    const displayIcon = currentSkin.icons ? currentSkin.icons[card.suit] : icon;
+
+    // Fallbacks for older skins if properties are missing
+    const fontClass = currentSkin.font || 'font-sans';
+    const roundedClass = currentSkin.rounded || 'rounded-xl';
+    const shadowClass = currentSkin.shadow || 'shadow-lg';
+
+    // Helper label for custom skins
+    const typeLabel = type === 'potion' ? 'HEAL' : type === 'weapon' ? 'WEAPON' : 'ENEMY';
+
     return (
-      <div 
+      <div
         onClick={() => handleCardClick(card)}
-        className={`relative w-28 h-40 sm:w-32 sm:h-48 rounded-xl bg-white shadow-lg border border-slate-200 flex flex-col justify-between p-3 cursor-pointer transform transition-transform duration-200 
-          ${isSelected ? 'scale-105 ring-4 ring-indigo-500 z-10' : 'hover:-translate-y-2 hover:shadow-xl'} 
+        className={`relative w-28 h-40 sm:w-32 sm:h-48 border-2 flex flex-col justify-between p-3 cursor-pointer transform transition-all duration-200
+          ${currentSkin.bg} ${currentSkin.border} ${fontClass} ${roundedClass} ${shadowClass}
+          ${isSelected ? 'scale-105 ring-4 ring-indigo-500 z-10' : 'hover:-translate-y-2 hover:shadow-2xl'}
           ${(forcedRetreat || (isRoomFull && !isSelected)) ? 'opacity-40 grayscale-[0.5] cursor-not-allowed' : ''}`}
       >
-        <div className={`text-xl sm:text-2xl font-bold ${color}`}>{getFace(card.value)}</div>
-        <div className={`text-4xl sm:text-6xl self-center ${color}`}>{icon}</div>
-        <div className={`text-xl sm:text-2xl font-bold ${color} self-end transform rotate-180`}>{getFace(card.value)}</div>
+        <div className="flex justify-between items-start w-full">
+          <div className="flex flex-col">
+            <div className={`text-xl sm:text-2xl font-bold leading-none ${color}`}>
+              {formatValue(card.value, currentSkin.numeralSystem, true)}
+            </div>
+            {currentSkin.numeralSystem && (
+              <div className={`text-[10px] sm:text-xs opacity-70 font-mono ${color} mt-1`}>
+                ({getFace(card.value)})
+              </div>
+            )}
+          </div>
+          {currentSkin.id !== 'default' && (
+            <div className={`flex flex-col items-end opacity-60 font-sans ${color}`}>
+              <span className="text-[12px] sm:text-sm leading-none drop-shadow-md">{icon}</span>
+              <span className="text-[7px] sm:text-[9px] font-bold uppercase tracking-wider mt-0.5">{typeLabel}</span>
+            </div>
+          )}
+        </div>
+        
+        <div className={`text-4xl sm:text-6xl self-center ${color}`}>{displayIcon}</div>
+        
+        <div className={`flex flex-col items-end self-end transform rotate-180`}>
+          <div className={`text-xl sm:text-2xl font-bold leading-none ${color}`}>
+            {formatValue(card.value, currentSkin.numeralSystem, true)}
+          </div>
+          {currentSkin.numeralSystem && (
+            <div className={`text-[10px] sm:text-xs opacity-70 font-mono ${color} mt-1`}>
+              ({getFace(card.value)})
+            </div>
+          )}
+        </div>
+
         {isSelected && isMonster && !forcedRetreat && !isRoomFull && (
-          <div className="absolute inset-0 bg-slate-900/90 rounded-xl flex flex-col justify-center items-center p-2 gap-2" onClick={(e) => e.stopPropagation()}>
+          <div className={`absolute inset-0 bg-slate-900/95 flex flex-col justify-center items-center p-2 gap-2 backdrop-blur-sm border border-slate-700 ${roundedClass}`} onClick={(e) => e.stopPropagation()}>
             <span className="text-white text-xs mb-1 font-semibold uppercase tracking-tighter">Choose Attack</span>
             <button onClick={() => attackBarehanded(card)} className="w-full bg-red-600 hover:bg-red-500 text-white text-[10px] py-2 px-1 rounded-md transition-colors leading-tight">Barehanded<br/>(-{card.value} HP)</button>
             {weapon && (
@@ -304,23 +544,102 @@ export default function App() {
   if (status === 'menu') {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-6">
-        <div className="max-w-md w-full text-center space-y-8">
+        <div className="max-w-md w-full text-center space-y-6">
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-indigo-600 tracking-tight">SCOUNDREL</h1>
           <p className="text-slate-400 text-lg">A Solitaire Dungeon Crawler</p>
+
+          <div className="flex items-center justify-center gap-2 text-yellow-400 font-bold bg-slate-800/50 py-2 px-4 rounded-full w-max mx-auto border border-yellow-500/30">
+            <Coins className="w-5 h-5" /> {money} Coins
+          </div>
+
           <div className="bg-slate-800 p-6 rounded-2xl text-left text-sm space-y-3 shadow-xl border border-slate-700">
             <p className="flex items-center gap-2"><Heart className="w-4 text-red-500"/> <b>Hearts:</b> Health (+HP, Max 20). 1 per room max.</p>
             <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <b>Diamonds:</b> Weapons. Equip to fight.</p>
             <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <b>Clubs/Spades:</b> Monsters. Defeat them to survive.</p>
             <hr className="border-slate-700 my-2" />
             <p className="text-xs text-indigo-400 font-bold">Rule: You can only play exactly 3 cards per room.</p>
-            <p className="text-xs text-slate-400 font-medium italic">Grace Rule: You can Run Away infinitely in the first room until you play your first card.</p>
           </div>
+
           <div className="space-y-3">
             <button onClick={startGame} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg"><Play className="w-6 h-6" /> Enter the Dungeon</button>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => { loadLeaderboard(); setStatus('leaderboard'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Trophy className="w-5 h-5" /> Leaderboard</button>
-              <button onClick={handleShare} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">{copied ? <Check className="w-5 h-5 text-green-400" /> : <LinkIcon className="w-5 h-5" />} {copied ? "Copied!" : "Share URL"}</button>
+              <button onClick={() => { loadLeaderboard(); setStatus('leaderboard'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Trophy className="w-5 h-5" /> Top 10</button>
+              <button onClick={() => setStatus('shop')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-yellow-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><ShoppingBag className="w-5 h-5" /> Shop</button>
             </div>
+            <button onClick={handleShare} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">{copied ? <Check className="w-5 h-5 text-green-400" /> : <LinkIcon className="w-5 h-5" />} {copied ? "Copied!" : "Share URL"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'shop') {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-6 sm:p-12 overflow-y-auto">
+        <div className="max-w-2xl w-full space-y-6">
+          <div className="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-slate-700">
+             <button onClick={() => setStatus('menu')} className="bg-slate-700 hover:bg-slate-600 text-white font-bold p-2 rounded-xl transition-colors"><ChevronLeft className="w-6 h-6" /></button>
+             <h1 className="text-3xl font-black text-yellow-400 flex items-center gap-2"><ShoppingBag className="w-8 h-8" /> Skin Shop</h1>
+             <div className="flex items-center gap-2 text-yellow-400 font-bold text-xl"><Coins className="w-6 h-6" /> {money}</div>
+          </div>
+
+          <div className="bg-slate-800 p-4 rounded-2xl border border-slate-700 flex flex-col sm:flex-row gap-3 items-center">
+            <input
+              type="text"
+              placeholder="Enter Creator Code..."
+              value={creatorCode}
+              onChange={(e) => setCreatorCode(e.target.value)}
+              className="flex-1 w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-yellow-500 placeholder-slate-500"
+            />
+            <button
+              onClick={handleRedeemCode}
+              disabled={!creatorCode.trim()}
+              className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-yellow-400 font-bold px-8 py-3 rounded-xl transition-colors w-full sm:w-auto"
+            >
+              Redeem
+            </button>
+          </div>
+
+          {codeMessage.text && (
+            <div className={`text-center font-bold p-3 rounded-xl bg-slate-800 border ${codeMessage.type === 'success' ? 'text-green-400 border-green-800' : 'text-red-400 border-red-800'}`}>
+              {codeMessage.text}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {SKINS.map(skin => {
+               const isOwned = ownedSkins.includes(skin.id);
+               const isEquipped = equippedSkin === skin.id;
+               const canAfford = money >= skin.price;
+
+               const fontClass = skin.font || 'font-sans';
+               const roundedClass = skin.rounded || 'rounded-xl';
+               const previewIcon = skin.icons ? skin.icons['spades'] : '♠️';
+
+               return (
+                 <div key={skin.id} className={`bg-slate-800 p-5 rounded-2xl border ${isEquipped ? 'border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.3)]' : 'border-slate-700'} flex flex-col sm:flex-row items-center gap-6`}>
+                    <div className={`w-16 h-24 sm:w-20 sm:h-28 flex items-center justify-center text-3xl border-2 flex-shrink-0 ${skin.bg} ${skin.border} ${roundedClass} ${fontClass}`}>
+                      <span className={skin.badColor}>{previewIcon}</span>
+                    </div>
+                    <div className="flex-1 text-center sm:text-left space-y-3 w-full">
+                      <div>
+                        <h3 className="font-bold text-xl">{skin.name}</h3>
+                        {!isOwned && <p className="text-yellow-400 flex items-center justify-center sm:justify-start gap-1 font-semibold mt-1"><Coins className="w-4 h-4"/> {skin.price}</p>}
+                      </div>
+
+                      {isEquipped ? (
+                         <button disabled className="w-full py-2 bg-indigo-600/50 text-indigo-200 rounded-lg font-bold border border-indigo-500/50 cursor-default">Equipped</button>
+                      ) : isOwned ? (
+                         <button onClick={() => setEquippedSkin(skin.id)} className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition-colors">Equip Skin</button>
+                      ) : (
+                         <button onClick={() => handleBuySkin(skin)} disabled={!canAfford} className={`w-full py-2 rounded-lg font-bold transition-colors ${canAfford ? 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-lg' : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'}`}>
+                           {canAfford ? 'Purchase' : 'Not enough coins'}
+                         </button>
+                      )}
+                    </div>
+                 </div>
+               );
+            })}
           </div>
         </div>
       </div>
@@ -330,7 +649,7 @@ export default function App() {
   if (status === 'leaderboard') {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center p-6 sm:p-12">
-        <div className="max-w-md w-full bg-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+        <div className="max-w-md w-full bg-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-700">
           <h1 className="text-3xl font-black text-indigo-400 flex items-center justify-center gap-2"><Trophy className="w-8 h-8" /> Leaderboard</h1>
           <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
             {leaderboard.length === 0 ? <div className="p-8 text-center text-slate-400">No scores yet. Complete a run to be the first!</div> : (
@@ -344,7 +663,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <button onClick={() => setStatus('menu')} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><ChevronLeft className="w-5 h-5" /> Back to Menu</button>
+          <button onClick={() => setStatus('menu')} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors mt-6">Back to Menu</button>
         </div>
       </div>
     );
@@ -353,84 +672,166 @@ export default function App() {
   if (status === 'won' || status === 'lost') {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-6">
-        <div className="max-w-md w-full bg-slate-800 rounded-2xl p-8 text-center shadow-2xl space-y-6">
-          <div className="flex justify-center mb-4">{status === 'won' ? <ShieldAlert className="w-20 h-20 text-indigo-500" /> : <Skull className="w-20 h-20 text-red-500" />}</div>
-          <h1 className={`text-4xl font-black ${status === 'won' ? 'text-indigo-400' : 'text-red-500'}`}>{status === 'won' ? 'VICTORY' : 'GAME OVER'}</h1>
-          <p className="text-slate-300 italic">"{getRankMessage()}"</p>
-          <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 space-y-4">
-            <div><h2 className="text-xl font-bold mb-1">Final Score: <span className={score >= 0 ? 'text-green-400' : 'text-red-400'}>{score}</span></h2></div>
-            <div className="pt-4 border-t border-slate-800">
-              {!scoreSaved ? (
-                <div className="flex flex-col gap-3">
-                  <label className="text-sm font-semibold text-slate-300 text-left">Save your score:</label>
-                  <div className="flex gap-2">
-                    <input type="text" placeholder="Your name..." value={playerName} onChange={e => setPlayerName(e.target.value)} className="flex-1 bg-slate-800 text-white p-3 rounded-lg border border-slate-600 focus:outline-none focus:border-indigo-500" maxLength={15} />
-                    <button onClick={handleSaveScore} disabled={!playerName.trim() || isSaving} className="bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-2 px-4 rounded-lg transition-colors">{isSaving ? '...' : 'Save'}</button>
-                  </div>
-                  {saveError && <p className="text-red-400 text-sm">{saveError}</p>}
-                </div>
-              ) : <div className="bg-green-900/30 border border-green-800 text-green-400 p-3 rounded-lg font-bold flex items-center justify-center gap-2"><Trophy className="w-5 h-5" /> Score Saved!</div>}
-            </div>
-          </div>
+        <div className="max-w-md w-full bg-slate-800 rounded-2xl p-8 shadow-2xl text-center space-y-6 border border-slate-700">
+          <h1 className={`text-5xl font-black ${status === 'won' ? 'text-green-500' : 'text-red-500'}`}>
+            {status === 'won' ? 'VICTORY' : 'DEFEAT'}
+          </h1>
+          <p className="text-slate-300 text-lg">{loseReason}</p>
           
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => { loadLeaderboard(); setStatus('leaderboard'); }} className="bg-slate-900 border border-slate-700 hover:bg-slate-700 text-indigo-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Trophy className="w-5 h-5" /> Top 10</button>
-              <button onClick={startGame} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg"><RefreshCw className="w-5 h-5" /> Play Again</button>
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 space-y-2">
+            <div className="text-sm text-slate-400 uppercase font-bold tracking-wider">Final Score</div>
+            <div className={`text-6xl font-black ${score >= 0 ? 'text-green-400' : 'text-red-400'}`}>{score}</div>
+            {lastEarnedMoney > 0 && (
+                <div className="text-yellow-400 font-bold flex items-center justify-center gap-1 mt-2">
+                    <Coins className="w-5 h-5" /> +{lastEarnedMoney} Coins
+                </div>
+            )}
+          </div>
+
+          {!scoreSaved ? (
+            <div className="space-y-3">
+              <input 
+                type="text" 
+                placeholder="Enter your name..." 
+                value={playerName} 
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={15}
+                className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500 text-center text-lg font-bold"
+              />
+              {saveError && <p className="text-red-400 text-sm">{saveError}</p>}
+              <button 
+                onClick={handleSaveScore} 
+                disabled={!playerName.trim() || isSaving}
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-bold py-3 rounded-xl transition-colors flex justify-center items-center gap-2"
+              >
+                {isSaving ? <RefreshCw className="w-5 h-5 animate-spin" /> : 'Save Score'}
+              </button>
             </div>
-            <button onClick={() => setStatus('menu')} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Home className="w-5 h-5" /> Back to Menu</button>
-            <button onClick={handleShare} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">{copied ? <Check className="w-5 h-5 text-green-400" /> : <LinkIcon className="w-5 h-5" />} {copied ? "URL Copied!" : "Share Game URL"}</button>
+          ) : (
+            <div className="bg-green-900/30 border border-green-500/30 text-green-400 p-4 rounded-xl font-bold flex items-center justify-center gap-2">
+              <Check className="w-5 h-5" /> Score Saved!
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-700">
+            <button onClick={startGame} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"><RefreshCw className="w-5 h-5" /> Play Again</button>
+            <button onClick={() => setStatus('menu')} className="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2"><Home className="w-5 h-5" /> Menu</button>
           </div>
         </div>
       </div>
     );
   }
 
+  // Active Game View ('playing')
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans select-none overflow-hidden relative">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col p-4 sm:p-6 font-sans">
+      {/* Header Stats */}
+      <div className="max-w-4xl w-full mx-auto flex flex-wrap justify-between items-center bg-slate-800 p-3 sm:p-4 rounded-2xl shadow-lg border border-slate-700 mb-6 gap-4">
+        <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-2 bg-slate-900 py-2 px-3 sm:px-4 rounded-xl border border-slate-700">
+            <Heart className="w-6 h-6 text-red-500 fill-current" />
+            <div className="flex flex-col">
+              <div className="flex items-baseline">
+                <span className="text-xl sm:text-2xl font-black">{formatValue(health, currentSkin.numeralSystem)}</span>
+                <span className="text-slate-500 text-sm sm:text-base font-bold ml-1">/ {formatValue(20, currentSkin.numeralSystem)}</span>
+              </div>
+              {currentSkin.numeralSystem && (
+                <span className="text-[9px] text-slate-400 font-mono uppercase tracking-widest mt-0.5">
+                  DEC: {health}/20
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 bg-slate-900 py-2 px-3 sm:px-4 rounded-xl border border-slate-700">
+            <Sword className={`w-5 h-5 sm:w-6 sm:h-6 ${weapon ? 'text-indigo-400' : 'text-slate-600'}`} />
+            <div className="flex flex-col">
+              <span className="text-sm sm:text-lg font-black leading-none">
+                {weapon ? formatValue(weapon.value, currentSkin.numeralSystem) : 'None'}
+              </span>
+              {weapon && currentSkin.numeralSystem && (
+                <span className="text-[9px] text-indigo-400 font-mono uppercase mt-0.5">
+                  DEC: {weapon.value}
+                </span>
+              )}
+              <span className="text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider mt-0.5">
+                {weapon && lastKilled !== null ? `Max: ${lastKilled}` : 'Weapon'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end mr-4">
+                <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Deck</span>
+                <span className="text-2xl font-black leading-none">{deck.length}</span>
+            </div>
+            <button onClick={() => setShowExitConfirm(true)} className="p-2 sm:p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors">
+              <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+        </div>
+      </div>
+
+      {/* Main Room Area */}
+      <div className="flex-1 flex flex-col items-center justify-center max-w-4xl w-full mx-auto relative">
+        {forcedRetreat && (
+           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-4 w-full text-center z-20">
+             <div className="inline-flex items-center gap-2 bg-red-900/90 text-red-200 border border-red-500 px-4 py-2 rounded-xl font-bold shadow-lg animate-pulse">
+               <ShieldAlert className="w-5 h-5" /> Too many potions! You must run away!
+             </div>
+           </div>
+        )}
+        
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-6 items-center min-h-[16rem]">
+          {room.map(card => <Card key={card.id} card={card} />)}
+          {room.length === 0 && deck.length > 0 && (
+            <div className="text-slate-500 font-bold text-xl uppercase tracking-widest animate-pulse">Room Cleared</div>
+          )}
+        </div>
+      </div>
+
+      {/* Footer Controls */}
+      <div className="max-w-4xl w-full mx-auto mt-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
+            <button 
+                onClick={runAway}
+                disabled={!canRun || cardsPlayed > 0 || room.length === 0}
+                className={`flex-1 sm:flex-none py-4 px-8 rounded-xl font-black text-lg uppercase tracking-wider transition-all flex items-center justify-center gap-2
+                    ${(!canRun || cardsPlayed > 0 || room.length === 0) ? 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700' : 'bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.4)] hover:shadow-[0_0_25px_rgba(217,119,6,0.6)]'}`}
+            >
+                <RefreshCw className="w-5 h-5" /> Run Away
+            </button>
+
+            <button 
+                onClick={nextRoom}
+                disabled={(cardsPlayed < 3 && room.length > 0) || deck.length === 0}
+                className={`flex-1 sm:flex-none py-4 px-8 rounded-xl font-black text-lg uppercase tracking-wider transition-all flex items-center justify-center gap-2
+                    ${((cardsPlayed < 3 && room.length > 0) || deck.length === 0) ? 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-[0_0_15px_rgba(79,70,229,0.4)] hover:shadow-[0_0_25px_rgba(79,70,229,0.6)]'}`}
+            >
+                Next Room <ChevronLeft className="w-5 h-5 transform rotate-180" />
+            </button>
+        </div>
+        <div className="text-center mt-4 text-slate-500 font-bold text-sm sm:hidden">
+            Deck: {deck.length} cards remaining
+        </div>
+      </div>
+
+      {/* Exit Confirmation Modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-6">
-          <div className="bg-slate-800 border border-slate-700 rounded-2xl p-8 max-w-sm w-full shadow-2xl text-center space-y-6 animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-center"><LogOut className="w-16 h-16 text-yellow-500" /></div>
-            <h2 className="text-2xl font-bold">Abandon Run?</h2>
-            <p className="text-slate-400">Your current progress will be lost. This run will not be scored.</p>
-            <div className="grid grid-cols-2 gap-4">
-              <button onClick={() => setShowExitConfirm(false)} className="bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2"><X className="w-5 h-5" /> Cancel</button>
-              <button onClick={() => setStatus('menu')} className="bg-red-600 hover:bg-red-500 py-3 rounded-xl font-bold flex items-center justify-center gap-2"><LogOut className="w-5 h-5" /> Abandon</button>
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-800 border border-slate-700 p-6 rounded-2xl max-w-sm w-full space-y-6 shadow-2xl">
+            <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-black text-white">Flee the Dungeon?</h3>
+                <button onClick={() => setShowExitConfirm(false)} className="text-slate-400 hover:text-white"><X className="w-6 h-6"/></button>
+            </div>
+            <p className="text-slate-400">Are you sure you want to abandon this run? Your progress will be lost.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setStatus('menu')} className="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-3 rounded-xl transition-colors">Yes, Flee</button>
+              <button onClick={() => setShowExitConfirm(false)} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-xl transition-colors">Cancel</button>
             </div>
           </div>
         </div>
       )}
-
-      <div className="bg-slate-800 border-b border-slate-700 p-4 sticky top-0 z-20 shadow-md flex justify-between items-center">
-        <div className="flex gap-4 sm:gap-8 flex-wrap">
-          <div className="flex items-center gap-2"><div className="bg-slate-900 p-2 rounded-lg flex items-center gap-2"><Heart className={`w-6 h-6 ${health > 10 ? 'text-green-500' : health > 5 ? 'text-yellow-500' : 'text-red-500'}`} /><span className="text-2xl font-bold">{health}</span><span className="text-xs text-slate-500">/20</span></div></div>
-          <div className="flex items-center gap-2"><div className="bg-slate-900 p-2 rounded-lg flex flex-col justify-center min-w-[140px] border border-slate-700"><div className="flex items-center gap-2 text-sm text-slate-400 font-semibold uppercase tracking-wider mb-1"><Sword className="w-4 h-4 text-indigo-400"/> Weapon</div>{weapon ? <div className="flex justify-between items-center"><span className="text-xl font-bold text-red-500">{getFace(weapon.value)}♦️</span><span className="text-xs text-slate-400 ml-2 border-l border-slate-700 pl-2">Last: <span className="text-slate-200 font-bold">{lastKilled !== null ? getFace(lastKilled) : 'Any'}</span></span></div> : <span className="text-slate-600 text-sm italic px-1">Barehanded</span>}</div></div>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right hidden sm:block"><div className="text-sm text-slate-400 uppercase tracking-widest font-semibold">Deck</div><div className="text-2xl font-black text-indigo-400">{deck.length}</div></div>
-          <button onClick={() => setShowExitConfirm(true)} className="p-3 bg-slate-900 hover:bg-red-900/30 text-slate-400 hover:text-red-400 rounded-xl transition-all border border-slate-700 hover:border-red-800" title="Exit to Menu"><LogOut className="w-6 h-6" /></button>
-        </div>
-      </div>
-      {forcedRetreat && (
-        <div className="bg-red-600/90 text-white p-3 text-center font-bold tracking-wide animate-pulse border-y border-red-500 z-10">⚠️ FORCED RETREAT! Too many potions. You must run! ⚠️</div>
-      )}
-      <div className="flex-1 p-6 flex items-center justify-center overflow-y-auto">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 justify-items-center">
-          {room.map((card) => <Card key={card.id} card={card} />)}
-        </div>
-      </div>
-      <div className="bg-slate-800 border-t border-slate-700 p-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-        <button 
-          onClick={runAway} 
-          disabled={!canRun || cardsPlayed > 0} 
-          className={`px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-2 transition-all w-full sm:w-auto ${canRun && cardsPlayed === 0 ? (forcedRetreat ? 'bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-500/50 scale-105' : 'bg-slate-700 hover:bg-slate-600 text-white shadow-lg shadow-black/30') : 'bg-slate-900 text-slate-600 cursor-not-allowed border border-slate-800 opacity-60'}`}
-        >
-          🏃 Run Away {(deck.length + room.length === TOTAL_CARDS_IN_GAME && cardsPlayed === 0) ? '(Infinite)' : (!canRun ? '(Locked)' : (cardsPlayed > 0 ? '(In Battle)' : ''))}
-        </button>
-        <div className="text-center text-slate-400 text-sm mx-4 flex flex-col items-center"><span className="font-semibold text-slate-300">Room Clear Progress</span><div className="flex gap-1 mt-1">{[1, 2, 3].map(i => <div key={i} className={`w-8 h-2 rounded-full transition-all duration-300 ${cardsPlayed >= i ? 'bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.8)]' : 'bg-slate-700'}`} />)}</div></div>
-        <button onClick={nextRoom} disabled={cardsPlayed < 3 && room.length > 0} className={`px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-2 transition-all w-full sm:w-auto ${cardsPlayed >= 3 || room.length === 0 ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700'}`}>Next Room ➡️</button>
-      </div>
     </div>
   );
 }
