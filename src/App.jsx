@@ -107,20 +107,41 @@ export default function App() {
   }, [room, deck, health, status, forcedRetreat, canRun]);
 
   const endGame = (endStatus, reason) => {
-  setStatus(endStatus);
-  setLoseReason(reason);
-  if (endStatus === 'won') {
-    const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
-    const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
-    setScore(health + bonus);
-  } else {
-    const allRemaining = [...deck, ...room];
-    const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
-    const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
-    setScore(health - totalMonsterValue);
-    setLastKilled(0);  // ← New line: Reset last killed enemy value on loss
-  }
-};
+    setStatus(endStatus);
+    setLoseReason(reason);
+
+    console.group(`%c Game Ended: ${endStatus.toUpperCase()} `, 'background: #333; color: #bada55; font-weight: bold;');
+    console.log("Reason:", reason);
+
+    if (endStatus === 'won') {
+      const remainingHearts = room.filter(c => c.suit === 'hearts').map(c => c.value);
+      const bonus = remainingHearts.length > 0 ? Math.max(...remainingHearts) : 0;
+      const finalScore = health + bonus;
+
+      console.log("Winning Logic:");
+      console.log(`- Current Health: ${health}`);
+      console.log(`- Hearts left in room: [${remainingHearts.join(', ')}]`);
+      console.log(`- Highest Heart Bonus: ${bonus}`);
+      console.log(`- Total Score (Health + Bonus): ${finalScore}`);
+
+      setScore(finalScore);
+    } else {
+      const allRemaining = [...deck, ...room];
+      const remainingMonsters = allRemaining.filter(c => c.suit === 'clubs' || c.suit === 'spades');
+      const totalMonsterValue = remainingMonsters.reduce((acc, m) => acc + m.value, 0);
+      const finalScore = health - totalMonsterValue;
+
+      console.log("Losing Logic:");
+      console.log(`- Current Health: ${health}`);
+      console.log(`- Total Monsters Left (Deck + Room): ${remainingMonsters.length}`);
+      console.log(`- Total Monster Damage Penalty: -${totalMonsterValue}`);
+      console.log(`- Total Score (Health - Penalty): ${finalScore}`);
+
+      setScore(finalScore);
+      setLastKilled(0); 
+    }
+    console.groupEnd();
+  };
 
   const getRankMessage = () => {
     if (status === 'lost') {
