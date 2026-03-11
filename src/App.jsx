@@ -5,12 +5,7 @@ import {
   ShoppingBag, Coins
 } from 'lucide-react';
 
-// --- MOCK LEADERBOARD API (In-Memory) ---
-let mockLeaderboard = [
-  { id: '1', name: 'Dungeon Master', score: 45 },
-  { id: '2', name: 'Lucky Thief', score: 25 },
-  { id: '3', name: 'Brave Knight', score: 12 },
-];
+
 
 const fetchLeaderboard = async () => {
   await new Promise(resolve => setTimeout(resolve, 300));
