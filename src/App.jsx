@@ -91,6 +91,7 @@ export default function App() {
   useEffect(() => {
     if (status !== 'playing') return;
     if (health <= 0) {
+      setHealth(0);
       endGame('lost', "You succumbed to your injuries in the dungeon.");
       return;
     }
