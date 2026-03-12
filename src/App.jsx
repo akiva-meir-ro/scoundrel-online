@@ -7,6 +7,9 @@ import {
 
 import { fetchLeaderboard, submitScore } from './leaderboardApi';
 import en from '../locales/en.toml';
+import he from '../locales/he.toml';
+
+const LOCALES = { en, he };
 
 // ----------------------------------------
 
@@ -223,6 +226,9 @@ const buildDeck = () => {
 };
 
 export default function App() {
+  const [language, setLanguage] = useState('en');
+  const t = LOCALES[language];
+
   const [leaderboard, setLeaderboard] = useState([]);
   const [deck, setDeck] = useState([]);
   const [room, setRoom] = useState([]);
@@ -293,21 +299,21 @@ export default function App() {
 
     if (health <= 0) {
       setHealth(0);
-      endGame('lost', en.game_over.lose_reason_succumbed, 0);
+      endGame('lost', t.game_over.lose_reason_succumbed, 0);
       return;
     }
 
     const remainingMonstersInRoom = room.filter(c => c.suit === 'clubs' || c.suit === 'spades');
     if (deck.length === 0 && remainingMonstersInRoom.length === 0) {
-      endGame('won', en.game_over.win_reason_survived, health);
+      endGame('won', t.game_over.win_reason_survived, health);
       return;
     }
 
     if (forcedRetreat && !canRun) {
-      endGame('lost', en.game_over.lose_reason_trapped, health);
+      endGame('lost', t.game_over.lose_reason_trapped, health);
       return;
     }
-  }, [room, deck, health, status, forcedRetreat, canRun]);
+  }, [room, deck, health, status, forcedRetreat, canRun, t]);
 
   // --- LOGIC: END GAME & SCORING ---
   const endGame = (endStatus, reason, finalHealth) => {
@@ -346,7 +352,7 @@ export default function App() {
       setLeaderboard(scores);
       setScoreSaved(true);
     } catch (e) {
-      setSaveError(en.game_over.save_error);
+      setSaveError(t.game_over.save_error);
     } finally {
       setIsSaving(false);
     }
@@ -446,10 +452,10 @@ export default function App() {
   const handleRedeemCode = () => {
     if (creatorCode.trim().toLowerCase() === 'pizza pizza and more pizza') {
       setOwnedSkins(SKINS.map(s => s.id));
-      setCodeMessage({ text: en.shop.msg_success, type: "success" });
+      setCodeMessage({ text: t.shop.msg_success, type: "success" });
       setCreatorCode("");
     } else {
-      setCodeMessage({ text: en.shop.msg_error, type: "error" });
+      setCodeMessage({ text: t.shop.msg_error, type: "error" });
     }
     setTimeout(() => setCodeMessage({ text: "", type: "" }), 3000);
   };
@@ -514,16 +520,23 @@ export default function App() {
 
         {isSelected && isMonster && !forcedRetreat && !isRoomFull && (
           <div className={`absolute inset-0 bg-slate-900/95 flex flex-col justify-center items-center p-2 gap-2 backdrop-blur-sm border border-slate-700 ${roundedClass}`} onClick={(e) => e.stopPropagation()}>
-            <span className="text-white text-xs mb-1 font-semibold uppercase tracking-tighter">{en.playing.choose_attack}</span>
-            <button onClick={() => attackBarehanded(card)} className="w-full bg-red-600 hover:bg-red-500 text-white text-[10px] py-2 px-1 rounded-md transition-colors leading-tight">{en.playing.barehanded}<br/>(-{card.value} {en.playing.hp})</button>
+            <span className="text-white text-xs mb-1 font-semibold uppercase tracking-tighter">{t.playing.choose_attack}</span>
+            <button onClick={() => attackBarehanded(card)} className="w-full bg-red-600 hover:bg-red-500 text-white text-[10px] py-2 px-1 rounded-md transition-colors leading-tight">{t.playing.barehanded}<br/>(-{card.value} {t.playing.hp})</button>
             {weapon && (
-              <button onClick={() => attackWithWeapon(card)} disabled={!weaponValid} className={`w-full text-white text-[10px] py-2 px-1 rounded-md transition-colors ${weaponValid ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-slate-600 opacity-50 cursor-not-allowed'}`}>{en.playing.weapon}<br/>(-{Math.max(0, card.value - weapon.value)} {en.playing.hp})</button>
+              <button onClick={() => attackWithWeapon(card)} disabled={!weaponValid} className={`w-full text-white text-[10px] py-2 px-1 rounded-md transition-colors ${weaponValid ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-slate-600 opacity-50 cursor-not-allowed'}`}>{t.playing.weapon}<br/>(-{Math.max(0, card.value - weapon.value)} {t.playing.hp})</button>
             )}
-            <button onClick={() => setSelectedCardId(null)} className="mt-1 text-slate-300 hover:text-white text-xs underline">{en.exit_modal.cancel}</button>
+            <button onClick={() => setSelectedCardId(null)} className="mt-1 text-slate-300 hover:text-white text-xs underline">{t.exit_modal.cancel}</button>
           </div>
         )}
       </div>
     );
+  };
+
+  const isRTL = language === 'he';
+
+  const containerProps = {
+    dir: isRTL ? 'rtl' : 'ltr',
+    className: `min-h-screen bg-slate-900 text-slate-100 flex flex-col ${isRTL ? 'font-sans' : 'font-sans'}`
   };
 
   if (status === 'menu') {
