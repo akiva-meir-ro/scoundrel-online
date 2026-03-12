@@ -536,7 +536,11 @@ export default function App() {
       setLoggedInPassword(authPassword);
       setAuthMessage({ text: t.auth.save_success, type: "success" });
     } catch (e) {
-      setAuthMessage({ text: e.message === "Someone is already using that password" ? t.auth.signup_error : t.auth.save_error, type: "error" });
+      console.error("Signup error:", e);
+      const msg = e.message === "Someone is already using that password" 
+        ? t.auth.signup_error 
+        : `${t.auth.save_error} (${e.message})`;
+      setAuthMessage({ text: msg, type: "error" });
     } finally {
       setIsAuthLoading(false);
     }
@@ -554,7 +558,11 @@ export default function App() {
       setEquippedSkin(result.data.equippedSkin || 'default');
       setAuthMessage({ text: t.auth.logged_in_as, type: "success" });
     } catch (e) {
-      setAuthMessage({ text: t.auth.login_error, type: "error" });
+      console.error("Login error:", e);
+      const msg = e.message === "Invalid password" 
+        ? t.auth.login_error 
+        : `${t.auth.save_error} (${e.message})`;
+      setAuthMessage({ text: msg, type: "error" });
     } finally {
       setIsAuthLoading(false);
     }

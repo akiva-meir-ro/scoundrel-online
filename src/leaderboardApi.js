@@ -1,9 +1,18 @@
 const API_URL = "/api/leaderboard";
 const AUTH_URL = "/api/auth";
 
+async function safeJson(res) {
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    return { error: `Server error: ${res.status}. Body: ${text.substring(0, 100)}` };
+  }
+}
+
 export async function fetchLeaderboard() {
   const res = await fetch(API_URL);
-  const data = await res.json();
+  const data = await safeJson(res);
   return data.scores || [];
 }
 
@@ -13,7 +22,7 @@ export async function submitScore(name, score) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, score }),
   });
-  const data = await res.json();
+  const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Failed to save score");
   return data.scores || [];
 }
@@ -24,7 +33,7 @@ export async function signup(password, data) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password, data }),
   });
-  const result = await res.json();
+  const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to signup");
   return result;
 }
@@ -35,7 +44,7 @@ export async function login(password) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password }),
   });
-  const result = await res.json();
+  const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to login");
   return result;
 }
@@ -46,7 +55,7 @@ export async function saveProgress(password, data) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ password, data }),
   });
-  const result = await res.json();
+  const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to save progress");
   return result;
 }
