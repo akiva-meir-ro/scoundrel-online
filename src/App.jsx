@@ -207,14 +207,14 @@ const SKINS = [
     bg: 'bg-pink-100 bg-[radial-gradient(circle_at_center,rgba(244,114,182,0.2)_0%,transparent_100%),radial-gradient(#ec4899_1px,transparent_1px)] [background-size:100%_100%,16px_16px]', border: 'border-pink-400 border-4 border-dashed',
     goodColor: 'text-pink-600', badColor: 'text-purple-500',
     font: 'font-sans font-black', rounded: 'rounded-3xl', shadow: 'shadow-lg',
-    icons: { hearts: '💖', diamonds: '🎀', clubs: '🧸', spades: '🦄' }
+    icons: { hearts: '💖', diamonds: '🌺', clubs: '🎀', spades: '🦄' }
   },
   {
     id: 'vaporwave', price: 10000,
     bg: 'bg-gradient-to-br from-fuchsia-400 via-purple-400 to-cyan-400 bg-[linear-gradient(to_bottom,transparent_50%,rgba(255,255,255,0.2)_50%)] [background-size:100%_4px]', border: 'border-yellow-300 border-4',
     goodColor: 'text-yellow-200 drop-shadow-[2px_2px_0_rgba(236,72,153,1)]', badColor: 'text-cyan-100 drop-shadow-[2px_2px_0_rgba(168,85,247,1)]',
     font: 'font-serif italic tracking-widest', rounded: 'rounded-sm', shadow: 'shadow-[10px_10px_0_rgba(0,0,0,0.5)]',
-    icons: { hearts: '🌺', diamonds: '💾', clubs: '🐬', spades: '🌴' }
+    icons: { hearts: '🥥', diamonds: '🌴', clubs: '🐬', spades: '🌅' }
   }
 ];
 
