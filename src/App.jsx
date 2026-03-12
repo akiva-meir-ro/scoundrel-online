@@ -5,19 +5,8 @@ import {
   ShoppingBag, Coins
 } from 'lucide-react';
 
+import { fetchLeaderboard, submitScore } from './leaderboardApi';
 
-
-const fetchLeaderboard = async () => {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return [...mockLeaderboard].sort((a, b) => b.score - a.score);
-};
-
-const submitScore = async (name, score) => {
-  await new Promise(resolve => setTimeout(resolve, 400));
-  const newEntry = { id: Date.now().toString(), name, score };
-  mockLeaderboard.push(newEntry);
-  return [...mockLeaderboard].sort((a, b) => b.score - a.score);
-};
 // ----------------------------------------
 
 const SKINS = [
