@@ -184,7 +184,7 @@ const SKINS = [
       hearts: '🍎',
       diamonds: '💎',
       clubs: '🧟',
-      spades: '🕷'
+      spades: '🕷',
     },
     numeralSystem: 'default'
   },
