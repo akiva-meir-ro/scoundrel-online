@@ -121,6 +121,25 @@ const SKINS = [
     icons: { hearts: '❤️‍🔥', diamonds: '🔱', clubs: '👹', spades: '😈' }
   },
   {
+    id: 'celeste',
+    price: 5500,
+    // Midnight blue with a subtle "pixel snow" starfield
+    bg: 'bg-[#0b0e1a] bg-[radial-gradient(#ffffff22_1px,transparent_1px)] [background-size:20px_20px]',
+    border: 'border-[#ff406e] border-2 shadow-[0_0_15px_rgba(255,64,110,0.3)]',
+    goodColor: 'text-[#ff406e] drop-shadow-[0_0_3px_rgba(255,64,110,0.8)]',
+    badColor: 'text-[#33f7ff] drop-shadow-[0_0_3px_rgba(51,247,255,0.8)]',
+    font: 'font-mono uppercase tracking-tighter',
+    rounded: 'rounded-none', // Pixel-art sharp edges
+    shadow: 'shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]',
+    icons: {
+      hearts: '🍓',   // Strawberries
+      diamonds: '💎', // Crystal Hearts
+      clubs: '🏔️',    // The Mountain
+      spades: '🌑'     // Badeline / Seekers
+    },
+    numeralSystem: 'default'
+  },
+  {
     id: 'samurai', price: 6000,
     bg: 'bg-neutral-100 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.05)_0%,transparent_100%),repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(0,0,0,0.02)_10px,rgba(0,0,0,0.02)_20px)]', border: 'border-red-700 border-l-8 border-r-8',
     goodColor: 'text-red-600', badColor: 'text-neutral-900',
