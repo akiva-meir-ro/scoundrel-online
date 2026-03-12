@@ -5,7 +5,7 @@ import {
   ShoppingBag, Coins, Languages
 } from 'lucide-react';
 
-import { fetchLeaderboard, submitScore } from './leaderboardApi';
+import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
 import en from '../locales/en.toml';
 import he from '../locales/he.toml';
 
@@ -132,10 +132,10 @@ const SKINS = [
     rounded: 'rounded-none', // Pixel-art sharp edges
     shadow: 'shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]',
     icons: {
-      hearts: '💙',   // Strawberries
-      diamonds: '🍓', // Crystal Hearts
-      clubs: '🏔️',    // The Mountain
-      spades: '📼'     // Badeline / Seekers
+      hearts: '💙',
+      diamonds: '🍓',
+      clubs: '🏔️',
+      spades: '📼',
     },
     numeralSystem: 'default'
   },
@@ -267,6 +267,12 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  // --- AUTH STATE ---
+  const [authPassword, setAuthPassword] = useState("");
+  const [loggedInPassword, setLoggedInPassword] = useState("");
+  const [authMessage, setAuthMessage] = useState({ text: "", type: "" });
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
 
   // --- SHOP & ECONOMY STATE ---
   const [money, setMoney] = useState(0);
@@ -479,6 +485,52 @@ export default function App() {
     setTimeout(() => setCodeMessage({ text: "", type: "" }), 3000);
   };
 
+  const handleSignup = async () => {
+    if (!authPassword.trim() || isAuthLoading) return;
+    setIsAuthLoading(true);
+    setAuthMessage({ text: "", type: "" });
+    try {
+      const initialData = { money, ownedSkins, equippedSkin };
+      await signup(authPassword, initialData);
+      setLoggedInPassword(authPassword);
+      setAuthMessage({ text: t.auth.save_success, type: "success" });
+    } catch (e) {
+      setAuthMessage({ text: e.message === "Someone is already using that password" ? t.auth.signup_error : t.auth.save_error, type: "error" });
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!authPassword.trim() || isAuthLoading) return;
+    setIsAuthLoading(true);
+    setAuthMessage({ text: "", type: "" });
+    try {
+      const result = await login(authPassword);
+      setLoggedInPassword(authPassword);
+      setMoney(result.data.money || 0);
+      setOwnedSkins(result.data.ownedSkins || ['default']);
+      setEquippedSkin(result.data.equippedSkin || 'default');
+      setAuthMessage({ text: t.auth.logged_in_as, type: "success" });
+    } catch (e) {
+      setAuthMessage({ text: t.auth.login_error, type: "error" });
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setLoggedInPassword("");
+    setAuthPassword("");
+    setAuthMessage({ text: "", type: "" });
+  };
+
+  useEffect(() => {
+    if (loggedInPassword) {
+      saveProgress(loggedInPassword, { money, ownedSkins, equippedSkin }).catch(console.error);
+    }
+  }, [money, ownedSkins, equippedSkin, loggedInPassword]);
+
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'he' : 'en');
   };
@@ -585,6 +637,37 @@ export default function App() {
             <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
             <hr className="border-slate-700 my-2" />
             <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
+          </div>
+
+          <div className="bg-slate-800 p-6 rounded-2xl text-left rtl:text-right text-sm space-y-4 shadow-xl border border-slate-700">
+            <h3 className="text-indigo-400 font-bold flex items-center gap-2"><Check className="w-4 h-4"/> {t.auth.title}</h3>
+            {loggedInPassword ? (
+              <div className="space-y-3">
+                <p className="text-slate-300">{t.auth.logged_in_as}: <span className="text-white font-mono">{"*".repeat(loggedInPassword.length)}</span></p>
+                <button onClick={handleLogout} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"><LogOut className="w-4 h-4"/> {t.auth.logout}</button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="password"
+                  placeholder={t.auth.password_placeholder}
+                  value={authPassword}
+                  onChange={(e) => setAuthPassword(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                />
+                {authMessage.text && (
+                  <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button onClick={handleSignup} disabled={!authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.signup}
+                  </button>
+                  <button onClick={handleLogin} disabled={!authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
+                    {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.login}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">

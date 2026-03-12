@@ -66,6 +66,20 @@ message = "Are you sure you want to abandon this run? Your progress will be lost
 yes = "Yes, Flee"
 cancel = "Cancel"
 
+[auth]
+title = "Save Progress"
+password_placeholder = "Enter Password..."
+signup = "Sign Up"
+login = "Log In"
+logout = "Log Out"
+logged_in_as = "Logged in"
+save_success = "Progress saved!"
+save_error = "Failed to save progress."
+login_error = "Invalid password."
+signup_error = "Someone is already using that password"
+empty_password = "Password cannot be empty."
+loading = "Loading..."
+
 [skins]
 default = "Classic"
 obsidian = "Obsidian"

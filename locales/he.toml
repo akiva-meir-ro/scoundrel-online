@@ -66,6 +66,20 @@ message = "האם אתה בטוח שברצונך לנטוש את הריצה הז
 yes = "כן, ברח"
 cancel = "ביטול"
 
+[auth]
+title = "שמור התקדמות"
+password_placeholder = "הזן סיסמה..."
+signup = "הרשמה"
+login = "התחברות"
+logout = "התנתקות"
+logged_in_as = "מחובר"
+save_success = "התקדמות נשמרה!"
+save_error = "שמירת התקדמות נכשלה."
+login_error = "סיסמה לא תקינה."
+signup_error = "מישהו כבר משתמש בסיסמה הזו"
+empty_password = "הסיסמה לא יכולה להיות ריקה."
+loading = "טוען..."
+
 [skins]
 default = "קלאסי"
 obsidian = "אובסידיאן"
