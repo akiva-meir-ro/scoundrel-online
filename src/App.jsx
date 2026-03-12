@@ -132,10 +132,10 @@ const SKINS = [
     rounded: 'rounded-none', // Pixel-art sharp edges
     shadow: 'shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)]',
     icons: {
-      hearts: '🍓',   // Strawberries
-      diamonds: '💎', // Crystal Hearts
+      hearts: '💙',   // Strawberries
+      diamonds: '🍓', // Crystal Hearts
       clubs: '🏔️',    // The Mountain
-      spades: '🌑'     // Badeline / Seekers
+      spades: '📼'     // Badeline / Seekers
     },
     numeralSystem: 'default'
   },
