@@ -129,7 +129,7 @@ const SKINS = [
       hearts: '❤️',
       diamonds: '🪓',
       clubs: '👁️‍🗨️',
-      spades: '▬ι═ﺤ',
+      spades: '🗡',
     },
     numeralSystem: 'default'
   },
