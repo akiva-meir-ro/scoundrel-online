@@ -127,9 +127,9 @@ const SKINS = [
     shadow: 'shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)]',
     icons: {
       hearts: '❤️',
-      diamonds: '🪓'
+      diamonds: '🪓',
       clubs: '👁️‍🗨️',
-      spades: '▬ι═ﺤ'
+      spades: '▬ι═ﺤ',
     },
     numeralSystem: 'default'
   },
