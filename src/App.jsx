@@ -114,6 +114,26 @@ const SKINS = [
     numeralSystem: 'roman'
   },
   {
+    id: 'deltarune',
+    price: 4500,
+    // Dark World floor pattern (checkered purple/black)
+    bg: 'bg-[#0f0714] bg-[linear-gradient(45deg,#1a0d24_25%,transparent_25%,transparent_50%,#1a0d24_50%,#1a0d24_75%,transparent_75%,transparent)] [background-size:24px_24px]',
+    border: 'border-[#ff00ff] border-2 shadow-[0_0_10px_rgba(255,0,255,0.4)]',
+    // Good: Soul Red/Pink | Bad: Darkner Purple/Shadow
+    goodColor: 'text-[#ff0037] drop-shadow-[0_0_5px_rgba(255,0,55,0.8)]',
+    badColor: 'text-[#a44cd3] drop-shadow-[0_0_5px_rgba(164,76,211,0.8)]',
+    font: 'font-mono uppercase',
+    rounded: 'rounded-none', // Sharp retro corners
+    shadow: 'shadow-[6px_6px_0px_0px_rgba(0,0,0,0.6)]',
+    icons: {
+      hearts: '❤️',
+      diamonds: '🪓'
+      clubs: '👁️‍🗨️',
+      spades: '▬ι═ﺤ'
+    },
+    numeralSystem: 'default'
+  },
+  {
     id: 'infernal', price: 5000,
     bg: 'bg-orange-950 bg-[radial-gradient(ellipse_at_bottom,rgba(234,88,12,0.5)_0,transparent_60%),repeating-radial-gradient(circle_at_50%_100%,transparent,transparent_5px,rgba(0,0,0,0.2)_5px,rgba(0,0,0,0.2)_10px)]', border: 'border-orange-600 border-t-4 border-b-4',
     goodColor: 'text-orange-400 drop-shadow-[0_0_5px_rgba(249,115,22,0.8)]', badColor: 'text-red-800',
@@ -146,6 +166,27 @@ const SKINS = [
     font: 'font-serif', rounded: 'rounded-none', shadow: 'shadow-xl',
     icons: { hearts: '⛩️', diamonds: '🗡️', clubs: '👺', spades: '🐉' },
     numeralSystem: 'kanji'
+  },
+  {
+    id: 'minecraft',
+    price: 6500,
+    // Creates a grass block look: a green strip at the top, dirt brown below
+    bg: 'bg-[#745A36] bg-[linear-gradient(to_bottom,#5E8A3F_15%,transparent_15%)]',
+    // Thick, dark dirt-colored border
+    border: 'border-[#3C2812] border-4',
+    // Diamond blue for good, Damage red for bad, both with hard black drop shadows
+    goodColor: 'text-[#55FFFF] drop-shadow-[2px_2px_0_rgba(0,0,0,1)]',
+    badColor: 'text-[#FF5555] drop-shadow-[2px_2px_0_rgba(0,0,0,1)]',
+    font: 'font-mono font-black uppercase',
+    rounded: 'rounded-none', // Perfect blocks
+    shadow: 'shadow-[6px_6px_0_rgba(0,0,0,0.5)]',
+    icons: {
+      hearts: '🍎',
+      diamonds: '💎',
+      clubs: '🧟',
+      spades: '🕷'
+    },
+    numeralSystem: 'default'
   },
   {
     id: 'celestial', price: 7500,
