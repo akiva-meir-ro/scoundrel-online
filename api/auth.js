@@ -1,12 +1,14 @@
-import { getStore } from "@netlify/blobs";
+import { Redis } from '@upstash/redis';
 
-const STORE_NAME = "scoundrel-users";
+export const config = {
+  runtime: 'edge',
+};
 
-export default async (request, context) => {
-  const store = getStore(STORE_NAME);
+const redis = Redis.fromEnv();
+
+export default async function handler(request) {
   const method = request.method;
   const url = new URL(request.url);
-  // Support both /api/auth/signup and /.netlify/functions/auth/signup
   const path = url.pathname;
 
   if (method !== "POST") {
@@ -21,27 +23,30 @@ export default async (request, context) => {
       return Response.json({ error: "Password is required" }, { status: 400 });
     }
 
-    const userKey = `user_${password}`;
+    const userKey = `user:${password}`;
 
+    // Handle /api/auth/signup
     if (path.endsWith("/signup")) {
-      const existing = await store.get(userKey);
+      const existing = await redis.get(userKey);
       if (existing) {
         return Response.json({ error: "Someone is already using that password" }, { status: 409 });
       }
-      await store.setJSON(userKey, data || {});
+      await redis.set(userKey, JSON.stringify(data || {}));
       return Response.json({ success: true });
     }
 
+    // Handle /api/auth/login
     if (path.endsWith("/login")) {
-      const userData = await store.get(userKey, { type: "json" });
+      const userData = await redis.get(userKey);
       if (!userData) {
         return Response.json({ error: "Invalid password" }, { status: 401 });
       }
       return Response.json({ success: true, data: userData });
     }
 
+    // Handle /api/auth/save
     if (path.endsWith("/save")) {
-      await store.setJSON(userKey, data || {});
+      await redis.set(userKey, JSON.stringify(data || {}));
       return Response.json({ success: true });
     }
 
@@ -49,8 +54,4 @@ export default async (request, context) => {
   } catch (err) {
     return Response.json({ error: err.message }, { status: 500 });
   }
-};
-
-export const config = {
-  path: "/api/auth/*",
-};
+}
