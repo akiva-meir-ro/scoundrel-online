@@ -106,6 +106,27 @@ const SKINS = [
     icons: { hearts: '🧪', diamonds: '💉', clubs: '🧟', spades: '☣️' }
   },
   {
+    id: 'ocean', price: 2000,
+    bg: 'bg-blue-900 bg-[radial-gradient(circle_at_50%_0%,rgba(59,130,246,0.3)_0,transparent_50%),radial-gradient(circle_at_50%_100%,rgba(37,99,235,0.3)_0,transparent_50%)]', border: 'border-blue-400 border-2 border-dotted',
+    goodColor: 'text-blue-200', badColor: 'text-cyan-400',
+    font: 'font-sans italic', rounded: 'rounded-full', shadow: 'shadow-[0_0_15px_rgba(59,130,246,0.5)]',
+    icons: { hearts: '🫧', diamonds: '🔱', clubs: '🐙', spades: '🦈' }
+  },
+  {
+    id: 'paper', price: 1000,
+    bg: 'bg-white bg-[radial-gradient(#ccc_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-slate-400 border-2',
+    goodColor: 'text-blue-600', badColor: 'text-slate-800',
+    font: 'font-mono', rounded: 'rounded-sm', shadow: 'shadow-md',
+    icons: { hearts: '✍️', diamonds: '✒️', clubs: '👾', spades: '💀' }
+  },
+  {
+    id: 'glitch', price: 3500,
+    bg: 'bg-black bg-[linear-gradient(90deg,rgba(255,0,0,0.1)_0%,rgba(0,255,0,0.1)_50%,rgba(0,0,255,0.1)_100%)] [background-size:200%_100%] animate-pulse', border: 'border-fuchsia-500 border-2 border-double shadow-[0_0_10px_rgba(217,70,239,0.5)]',
+    goodColor: 'text-cyan-400 drop-shadow-[2px_0_0_rgba(255,0,0,1)]', badColor: 'text-lime-400 drop-shadow-[-2px_0_0_rgba(0,0,255,1)]',
+    font: 'font-mono font-black uppercase italic', rounded: 'rounded-none', shadow: 'shadow-none',
+    icons: { hearts: '👾', diamonds: '💾', clubs: '📡', spades: '🚫' }
+  },
+  {
     id: 'desert', price: 4000,
     bg: 'bg-amber-100 bg-[repeating-linear-gradient(0deg,rgba(217,119,6,0.05)_0px,rgba(217,119,6,0.05)_1px,transparent_1px,transparent_10px)]', border: 'border-yellow-600 border-2',
     goodColor: 'text-red-700', badColor: 'text-amber-900',
@@ -278,6 +299,27 @@ const SKINS = [
     goodColor: 'text-yellow-600 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]', badColor: 'text-indigo-900',
     font: 'font-serif font-black tracking-[0.2em]', rounded: 'rounded-3xl', shadow: 'shadow-2xl',
     icons: { hearts: '☀️', diamonds: '🔱', clubs: '👁️', spades: '🌌' }
+  },
+  {
+    id: 'knight', price: -1,
+    bg: 'bg-slate-300 bg-[linear-gradient(45deg,#94a3b8_25%,transparent_25%,transparent_50%,#94a3b8_50%,#94a3b8_75%,transparent_75%,transparent)] [background-size:10px_10px]', border: 'border-blue-900 border-4',
+    goodColor: 'text-blue-800', badColor: 'text-slate-900',
+    font: 'font-serif font-black', rounded: 'rounded-none', shadow: 'shadow-2xl',
+    icons: { hearts: '🛡️', diamonds: '⚔️', clubs: '🐉', spades: '🏰' }
+  },
+  {
+    id: 'demon', price: -1,
+    bg: 'bg-red-950 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0.8)_0%,transparent_100%),repeating-linear-gradient(45deg,transparent,transparent_2px,#000_2px,#000_4px)]', border: 'border-red-600 border-2 shadow-[0_0_20px_rgba(220,38,38,0.8)]',
+    goodColor: 'text-red-500 drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]', badColor: 'text-orange-600',
+    font: 'font-mono uppercase', rounded: 'rounded-sm', shadow: 'shadow-none',
+    icons: { hearts: '🌋', diamonds: '🔱', clubs: '👹', spades: '🔥' }
+  },
+  {
+    id: 'legend', price: -1,
+    bg: 'bg-gradient-to-tr from-yellow-300 via-yellow-100 to-yellow-500 animate-pulse', border: 'border-white border-4 shadow-[0_0_30px_rgba(255,255,255,1)]',
+    goodColor: 'text-yellow-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]', badColor: 'text-yellow-900',
+    font: 'font-serif italic font-black uppercase tracking-widest', rounded: 'rounded-2xl', shadow: 'shadow-2xl',
+    icons: { hearts: '⭐', diamonds: '🔱', clubs: '🐲', spades: '👑' }
   }
 ];
 
@@ -289,6 +331,12 @@ const ACHIEVEMENTS = [
   { id: 'slayer', type: 'kills', count: 100, rewardType: 'skin', rewardVal: 'slayer' },
   { id: 'perfect', type: 'perfect_win', count: 1, rewardType: 'money', rewardVal: 1500 },
   { id: 'daily', type: 'daily', rewardType: 'money', rewardVal: 200 },
+  { id: 'beginner_master', type: 'difficulty_win', difficulty: 'beginner', count: 5, rewardType: 'money', rewardVal: 300 },
+  { id: 'easy_master', type: 'difficulty_win', difficulty: 'easy', count: 5, rewardType: 'money', rewardVal: 500 },
+  { id: 'normal_master', type: 'difficulty_win', difficulty: 'normal', count: 5, rewardType: 'money', rewardVal: 1000 },
+  { id: 'hard_master', type: 'difficulty_win', difficulty: 'hard', count: 5, rewardType: 'skin', rewardVal: 'knight' },
+  { id: 'impossible_master', type: 'difficulty_win', difficulty: 'impossible', count: 1, rewardType: 'skin', rewardVal: 'demon' },
+  { id: 'scoundrel_legend', type: 'win', count: 100, rewardType: 'skin', rewardVal: 'legend' },
   { id: 'god', type: 'complete_all', count: 1, rewardType: 'skin', rewardVal: 'god' }
 ];
 
@@ -417,6 +465,13 @@ export default function App() {
   const [lifetimeStats, setLifetimeStats] = useState({
     gamesPlayed: 0,
     gamesWon: 0,
+    difficultyWins: {
+      beginner: 0,
+      easy: 0,
+      normal: 0,
+      hard: 0,
+      impossible: 0
+    },
     monstersKilled: 0,
     lifetimeMoney: 0,
     lastDailyDate: null
@@ -495,6 +550,7 @@ export default function App() {
 
       let achieved = false;
       if (ach.type === 'win') achieved = newStats.gamesWon >= ach.count;
+      if (ach.type === 'difficulty_win') achieved = (newStats.difficultyWins[ach.difficulty] || 0) >= ach.count;
       if (ach.type === 'money') achieved = newStats.lifetimeMoney >= ach.count;
       if (ach.type === 'skins') achieved = newOwnedSkins.length >= ach.count;
       if (ach.type === 'kills') achieved = newStats.monstersKilled >= ach.count;
@@ -566,6 +622,10 @@ export default function App() {
         ...prev,
         gamesPlayed: prev.gamesPlayed + 1,
         gamesWon: prev.gamesWon + (endStatus === 'won' ? 1 : 0),
+        difficultyWins: {
+          ...prev.difficultyWins,
+          [difficulty]: prev.difficultyWins[difficulty] + (endStatus === 'won' ? 1 : 0)
+        },
         lifetimeMoney: prev.lifetimeMoney + earnedMoney + dailyBonus,
         lastWinWasPerfect: endStatus === 'won' && health === 20,
         lastDailyDate: gotDaily ? today : prev.lastDailyDate
