@@ -15,7 +15,15 @@ const MAX_NAME_LENGTH = 15;
 async function getLeaderboard(difficulty = "normal") {
   const key = `${LEADERBOARD_PREFIX}:${difficulty}`;
   const data = await redis.get(key);
-  return data || [];
+  if (!data) return [];
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      return [];
+    }
+  }
+  return data;
 }
 
 async function handleGet(request) {
@@ -54,7 +62,7 @@ async function handlePost(request) {
 
 export default async function handler(request) {
   if (request.method === "GET") {
-    return handleGet();
+    return handleGet(request);
   }
   if (request.method === "POST") {
     return handlePost(request);

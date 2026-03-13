@@ -30,11 +30,19 @@ export default async function handler(request) {
     }
 
     const userKey = `user:${name.trim().toLowerCase()}`;
+    let accountRaw = await redis.get(userKey);
+    let account = accountRaw;
+    if (typeof accountRaw === 'string') {
+      try {
+        account = JSON.parse(accountRaw);
+      } catch (e) {
+        account = null;
+      }
+    }
 
     // Handle /api/auth/signup
     if (path.endsWith("/signup")) {
-      const existing = await redis.get(userKey);
-      if (existing) {
+      if (account) {
         return Response.json({ error: "Someone is already using that name" }, { status: 409 });
       }
       await redis.set(userKey, JSON.stringify({ password, data: data || {} }));
@@ -43,7 +51,6 @@ export default async function handler(request) {
 
     // Handle /api/auth/login
     if (path.endsWith("/login")) {
-      const account = await redis.get(userKey);
       if (!account || account.password !== password) {
         return Response.json({ error: "Invalid name or password" }, { status: 401 });
       }
@@ -52,7 +59,6 @@ export default async function handler(request) {
 
     // Handle /api/auth/save
     if (path.endsWith("/save")) {
-      const account = await redis.get(userKey);
       if (!account || account.password !== password) {
          return Response.json({ error: "Unauthorized" }, { status: 401 });
       }

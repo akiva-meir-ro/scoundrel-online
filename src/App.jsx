@@ -263,7 +263,7 @@ const SKINS = [
     bg: 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500', border: 'border-white border-2',
     goodColor: 'text-white', badColor: 'text-white/80',
     font: 'font-sans italic', rounded: 'rounded-full', shadow: 'shadow-xl',
-    icons: { hearts: '💎', diamonds: '✨', clubs: '🌟', spades: '🌈' }
+    icons: { hearts: '✨', diamonds: '💎', clubs: '🌟', spades: '🌈' }
   },
   {
     id: 'slayer', price: -1, // Achievement Only
@@ -368,6 +368,7 @@ export default function App() {
 
   const [difficulty, setDifficulty] = useState('normal');
   const [leaderboardDifficulty, setLeaderboardDifficulty] = useState('normal');
+  const [leaderboard, setLeaderboard] = useState([]);
   const [deck, setDeck] = useState([]);
   const [room, setRoom] = useState([]);
   const [health, setHealth] = useState(20);
@@ -1294,7 +1295,7 @@ export default function App() {
             ) : (
               <div className="flex flex-col">
                 {leaderboard.slice(0, 10).map((entry, idx) => (
-                  <div key={entry.id} className={`flex justify-between items-center p-4 ${idx < Math.min(leaderboard.length, 10) - 1 ? 'border-b border-slate-800' : ''}`}>
+                  <div key={entry.id || idx} className={`flex justify-between items-center p-4 ${idx < Math.min(leaderboard.length, 10) - 1 ? 'border-b border-slate-800' : ''}`}>
                     <div className="flex gap-4 items-center"><span className="text-slate-500 font-bold w-4 text-right rtl:text-left">{idx + 1}.</span><span className="font-semibold text-lg max-w-[150px] truncate">{entry.name}</span></div>
                     <span className={`font-black text-xl ${entry.score >= 0 ? 'text-green-400' : 'text-red-400'}`}>{entry.score}</span>
                   </div>
