@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
-  ShoppingBag, Coins, Languages
+  ShoppingBag, Coins, Languages, User, UserCircle
 } from 'lucide-react';
 
 import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
@@ -323,6 +323,11 @@ export default function App() {
   const [creatorCode, setCreatorCode] = useState("");
   const [codeMessage, setCodeMessage] = useState({ text: "", type: "" });
 
+  // --- NEW PROFILE STATE ---
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileName, setProfileName] = useState("");
+  const [profilePictureSkin, setProfilePictureSkin] = useState("default");
+
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
   const TOTAL_CARDS_IN_GAME = 44;
@@ -402,6 +407,11 @@ export default function App() {
     }
 
     setScore(finalScore);
+
+    // If logged in and profile name is set, pre-fill player name
+    if (profileName) {
+      setPlayerName(profileName);
+    }
 
     // Calculate money based on the provided formula
     const earnedMoney = Math.max(0, finalScore + 100);
@@ -531,7 +541,7 @@ export default function App() {
     setIsAuthLoading(true);
     setAuthMessage({ text: "", type: "" });
     try {
-      const initialData = { money, ownedSkins, equippedSkin };
+      const initialData = { money, ownedSkins, equippedSkin, profileName: profileName || "", profilePictureSkin: profilePictureSkin || "default" };
       await signup(authPassword, initialData);
       setLoggedInPassword(authPassword);
       setAuthMessage({ text: t.auth.save_success, type: "success" });
@@ -556,6 +566,8 @@ export default function App() {
       setMoney(result.data.money || 0);
       setOwnedSkins(result.data.ownedSkins || ['default']);
       setEquippedSkin(result.data.equippedSkin || 'default');
+      setProfileName(result.data.profileName || "");
+      setProfilePictureSkin(result.data.profilePictureSkin || "default");
       setAuthMessage({ text: t.auth.logged_in_as, type: "success" });
     } catch (e) {
       console.error("Login error:", e);
@@ -572,13 +584,15 @@ export default function App() {
     setLoggedInPassword("");
     setAuthPassword("");
     setAuthMessage({ text: "", type: "" });
+    setProfileName("");
+    setProfilePictureSkin("default");
   };
 
   useEffect(() => {
     if (loggedInPassword) {
-      saveProgress(loggedInPassword, { money, ownedSkins, equippedSkin }).catch(console.error);
+      saveProgress(loggedInPassword, { money, ownedSkins, equippedSkin, profileName, profilePictureSkin }).catch(console.error);
     }
-  }, [money, ownedSkins, equippedSkin, loggedInPassword]);
+  }, [money, ownedSkins, equippedSkin, loggedInPassword, profileName, profilePictureSkin]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'he' : 'en');
@@ -664,8 +678,38 @@ export default function App() {
   };
 
   if (status === 'menu') {
+    const profilePicSkin = SKINS.find(s => s.id === profilePictureSkin) || SKINS[0];
+    const profileIcon = profilePicSkin.icons ? profilePicSkin.icons['spades'] : '♠️';
+
     return (
-      <div {...containerProps} className={`${containerProps.className} items-center justify-center p-6`}>
+      <div {...containerProps} className={`${containerProps.className} items-center justify-center p-6 relative`}>
+        {/* Profile Button Top-Left */}
+        <div className="absolute top-6 left-6 flex items-center gap-3">
+          <button 
+            onClick={() => setIsProfileOpen(true)}
+            className="group relative flex items-center justify-center"
+          >
+            {loggedInPassword ? (
+              <div className={`w-14 h-14 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-2xl shadow-lg transition-transform hover:scale-110`}>
+                <span className={profilePicSkin.badColor}>{profileIcon}</span>
+              </div>
+            ) : (
+              <div className="w-14 h-14 rounded-full bg-slate-800 border-2 border-slate-700 flex items-center justify-center text-slate-400 transition-transform hover:scale-110">
+                <UserCircle className="w-10 h-10" />
+              </div>
+            )}
+            <div className={`absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-1 border-2 border-slate-900 ${loggedInPassword ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+              <User className="w-3 h-3 text-white" />
+            </div>
+          </button>
+          {loggedInPassword && profileName && (
+            <div className="hidden sm:block">
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{t.menu.profile}</p>
+              <p className="text-white font-black">{profileName}</p>
+            </div>
+          )}
+        </div>
+
         <div className="max-w-md w-full text-center space-y-6">
           <div className="flex justify-center mb-2">
             <button onClick={toggleLanguage} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 py-2 px-4 rounded-full border border-slate-700 text-slate-300 font-bold transition-colors">
@@ -680,46 +724,7 @@ export default function App() {
             <Coins className="w-5 h-5" /> {money} {t.menu.coins}
           </div>
 
-          <div className="bg-slate-800 p-6 rounded-2xl text-left rtl:text-right text-sm space-y-3 shadow-xl border border-slate-700">
-            <p className="flex items-center gap-2"><Heart className="w-4 text-red-500"/> <span><b>{t.menu.rules.hearts_label}</b>{t.menu.rules.hearts_desc}</span></p>
-            <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <span><b>{t.menu.rules.diamonds_label}</b>{t.menu.rules.diamonds_desc}</span></p>
-            <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
-            <hr className="border-slate-700 my-2" />
-            <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
-          </div>
-
-          <div className="bg-slate-800 p-6 rounded-2xl text-left rtl:text-right text-sm space-y-4 shadow-xl border border-slate-700">
-            <h3 className="text-indigo-400 font-bold flex items-center gap-2"><Check className="w-4 h-4"/> {t.auth.title}</h3>
-            {loggedInPassword ? (
-              <div className="space-y-3">
-                <p className="text-slate-300">{t.auth.logged_in_as}: <span className="text-white font-mono">{"*".repeat(loggedInPassword.length)}</span></p>
-                <button onClick={handleLogout} className="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2"><LogOut className="w-4 h-4"/> {t.auth.logout}</button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <input
-                  type="password"
-                  placeholder={t.auth.password_placeholder}
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
-                />
-                {authMessage.text && (
-                  <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
-                )}
-                <div className="grid grid-cols-2 gap-2">
-                  <button onClick={handleSignup} disabled={!authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
-                    {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.signup}
-                  </button>
-                  <button onClick={handleLogin} disabled={!authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
-                    {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.login}
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
+          <div className="space-y-3 pt-6">
             <button onClick={startGame} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg"><Play className="w-6 h-6" /> {t.menu.enter}</button>
             <div className="grid grid-cols-2 gap-3">
               <button onClick={() => { loadLeaderboard(); setStatus('leaderboard'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Trophy className="w-5 h-5" /> {t.menu.top10}</button>
@@ -728,6 +733,108 @@ export default function App() {
             <button onClick={handleShare} className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors">{copied ? <Check className="w-5 h-5 text-green-400" /> : <LinkIcon className="w-5 h-5" />} {copied ? t.menu.copied : t.menu.share}</button>
           </div>
         </div>
+
+        {/* Profile Modal */}
+        {isProfileOpen && (
+          <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+              <div className="p-6 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-slate-800 z-10">
+                <h2 className="text-2xl font-black text-white flex items-center gap-2"><User className="text-indigo-400" /> {t.profile.title}</h2>
+                <button onClick={() => setIsProfileOpen(false)} className="text-slate-400 hover:text-white bg-slate-700 p-2 rounded-xl"><X className="w-6 h-6"/></button>
+              </div>
+
+              <div className="p-6 space-y-8">
+                {/* Auth Section */}
+                <section className="space-y-4">
+                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.auth.title}</h3>
+                  {loggedInPassword ? (
+                    <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-xl`}>
+                          <span className={profilePicSkin.badColor}>{profileIcon}</span>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-bold uppercase">{t.auth.logged_in_as}</p>
+                          <p className="text-white font-mono">{"*".repeat(loggedInPassword.length)}</p>
+                        </div>
+                      </div>
+                      <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-xl transition-colors"><LogOut className="w-5 h-5"/></button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <input
+                        type="password"
+                        placeholder={t.auth.password_placeholder}
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                      />
+                      {authMessage.text && (
+                        <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={handleSignup} disabled={!authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.signup}
+                        </button>
+                        <button onClick={handleLogin} disabled={!authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.login}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </section>
+
+                {/* Profile Customization (Only if logged in) */}
+                {loggedInPassword && (
+                  <section className="space-y-6">
+                    <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.menu.profile}</h3>
+                    
+                    {/* Name Input */}
+                    <div className="space-y-2">
+                      <label className="text-sm text-slate-400 font-bold px-1">{t.profile.display_name}</label>
+                      <input
+                        type="text"
+                        placeholder={t.profile.placeholder_name}
+                        value={profileName}
+                        onChange={(e) => setProfileName(e.target.value.slice(0, 15))}
+                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 font-bold"
+                      />
+                    </div>
+
+                    {/* Profile Picture (Skin Select) */}
+                    <div className="space-y-3">
+                      <label className="text-sm text-slate-400 font-bold px-1">{t.profile.profile_picture}</label>
+                      <p className="text-xs text-slate-500 px-1">{t.profile.select_skin_desc}</p>
+                      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto p-2 bg-slate-900/50 rounded-2xl border border-slate-700">
+                        {SKINS.filter(s => ownedSkins.includes(s.id)).map(skin => (
+                          <button
+                            key={skin.id}
+                            onClick={() => setProfilePictureSkin(skin.id)}
+                            className={`w-12 h-16 rounded-lg border-2 flex items-center justify-center text-xl transition-all ${profilePictureSkin === skin.id ? 'border-indigo-500 scale-110 shadow-lg' : 'border-slate-700 opacity-60 hover:opacity-100'} ${skin.bg}`}
+                          >
+                            <span className={skin.badColor}>{skin.icons ? skin.icons['spades'] : '♠️'}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </section>
+                )}
+
+                {/* Instructions Section */}
+                <section className="space-y-4">
+                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2"><Skull className="w-4 h-4"/> {t.menu.rules.title}</h3>
+                  <div className="bg-slate-900/50 p-5 rounded-2xl text-sm space-y-3 border border-slate-700">
+                    <p className="flex items-center gap-2"><Heart className="w-4 text-red-500"/> <span><b>{t.menu.rules.hearts_label}</b>{t.menu.rules.hearts_desc}</span></p>
+                    <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <span><b>{t.menu.rules.diamonds_label}</b>{t.menu.rules.diamonds_desc}</span></p>
+                    <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
+                    <hr className="border-slate-700 my-2" />
+                    <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

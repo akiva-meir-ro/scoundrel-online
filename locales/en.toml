@@ -7,8 +7,10 @@ top10 = "Top 10"
 shop = "Shop"
 share = "Share URL"
 copied = "Copied!"
+profile = "Profile"
 
 [menu.rules]
+title = "How to Play"
 hearts_label = "Hearts:"
 hearts_desc = " Health (+HP, Max 20). 1 per room max."
 diamonds_label = "Diamonds:"
@@ -16,6 +18,15 @@ diamonds_desc = " Weapons. Equip to fight."
 monsters_label = "Clubs/Spades:"
 monsters_desc = " Monsters. Defeat them to survive."
 rule_3_cards = "Rule: You can only play exactly 3 cards per room."
+
+[profile]
+title = "Adventurer Profile"
+display_name = "Display Name"
+placeholder_name = "Enter your name..."
+profile_picture = "Profile Picture"
+select_skin_desc = "Choose an owned skin for your avatar"
+save_name = "Save Profile"
+name_updated = "Name updated!"
 
 [shop]
 title = "Skin Shop"

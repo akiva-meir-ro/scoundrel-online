@@ -7,8 +7,10 @@ top10 = "עשרת הגדולים"
 shop = "חנות"
 share = "שתף קישור"
 copied = "הועתק!"
+profile = "פרופיל"
 
 [menu.rules]
+title = "איך משחקים"
 hearts_label = "לבבות:"
 hearts_desc = " חיים (+HP, מקסימום 20). מקסימום 1 לכל חדר."
 diamonds_label = "יהלומים:"
@@ -16,6 +18,15 @@ diamonds_desc = " נשק. הצטייד כדי להילחם."
 monsters_label = "תלתן/עלה:"
 monsters_desc = " מפלצות. הבס אותן כדי לשרוד."
 rule_3_cards = "כלל: ניתן לשחק בדיוק 3 קלפים בכל חדר."
+
+[profile]
+title = "פרופיל הרפתקן"
+display_name = "שם תצוגה"
+placeholder_name = "הזן את שמך..."
+profile_picture = "תמונת פרופיל"
+select_skin_desc = "בחר עיצוב שבבעלותך עבור האווטאר שלך"
+save_name = "שמור פרופיל"
+name_updated = "השם עודכן!"
 
 [shop]
 title = "חנות עיצובים"
