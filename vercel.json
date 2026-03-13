@@ -3,6 +3,10 @@
     {
       "source": "/api/auth/:match*",
       "destination": "/api/auth"
+    },
+    {
+      "source": "/api/leaderboard",
+      "destination": "/api/leaderboard"
     }
   ]
 }

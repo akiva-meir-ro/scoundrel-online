@@ -4,7 +4,10 @@ export const config = {
   runtime: 'edge',
 };
 
-const redis = Redis.fromEnv();
+const redis = new Redis({
+  url: process.env.KV_REST_API_URL,
+  token: process.env.KV_REST_API_TOKEN,
+});
 const LEADERBOARD_KEY = "scoundrel:leaderboard";
 const MAX_ENTRIES = 50;
 const MAX_NAME_LENGTH = 15;
