@@ -988,12 +988,6 @@ export default function App() {
         </div>
 
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="flex justify-center mb-2">
-            <button onClick={toggleLanguage} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 py-2 px-4 rounded-full border border-slate-700 text-slate-300 font-bold transition-colors">
-              <Languages className="w-5 h-5" />
-              {language === 'en' ? 'עברית' : 'English'}
-            </button>
-          </div>
           <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-br from-red-500 to-indigo-600 tracking-tight">{t.menu.title}</h1>
           <p className="text-slate-400 text-lg">{t.menu.subtitle}</p>
 
@@ -1478,10 +1472,6 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-3">
-            <button onClick={toggleLanguage} className="p-2 sm:p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl transition-colors flex items-center gap-2">
-              <Languages className="w-5 h-5" />
-              <span className="hidden sm:inline font-bold">{language === 'en' ? 'HE' : 'EN'}</span>
-            </button>
             <div className="hidden sm:flex flex-col items-end rtl:items-start mx-4">
                 <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{t.playing.deck_label}</span>
                 <span className="text-2xl font-black leading-none">{deck.length}</span>
