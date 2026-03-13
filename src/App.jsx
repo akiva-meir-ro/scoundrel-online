@@ -229,7 +229,7 @@ const SKINS = [
     goodColor: 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.8)]', badColor: 'text-zinc-600',
     font: 'font-mono', rounded: 'rounded-sm', shadow: 'shadow-none',
     icons: { hearts: '🔋', diamonds: '⚡', clubs: '📟', spades: '📡' }
-  },⚡
+  },
   {
     id: 'galaxy', price: 25000,
     bg: 'bg-slate-950 bg-[radial-gradient(ellipse_at_top,rgba(30,58,138,0.3)_0%,transparent_70%),radial-gradient(ellipse_at_bottom,rgba(88,28,135,0.3)_0%,transparent_70%)]', border: 'border-indigo-400 border-2',
