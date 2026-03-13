@@ -228,8 +228,8 @@ const SKINS = [
     bg: 'bg-zinc-950 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-lime-400 border-2 shadow-[0_0_15px_rgba(163,230,53,0.5)]',
     goodColor: 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.8)]', badColor: 'text-zinc-600',
     font: 'font-mono', rounded: 'rounded-sm', shadow: 'shadow-none',
-    icons: { hearts: '⚡', diamonds: '🔋', clubs: '📟', spades: '📡' }
-  },
+    icons: { hearts: '🔋', diamonds: '⚡', clubs: '📟', spades: '📡' }
+  },⚡
   {
     id: 'galaxy', price: 25000,
     bg: 'bg-slate-950 bg-[radial-gradient(ellipse_at_top,rgba(30,58,138,0.3)_0%,transparent_70%),radial-gradient(ellipse_at_bottom,rgba(88,28,135,0.3)_0%,transparent_70%)]', border: 'border-indigo-400 border-2',
@@ -677,7 +677,7 @@ export default function App() {
   };
 
   const handleBuySkin = (skin) => {
-    if (money >= skin.price && !ownedSkins.includes(skin.id)) {
+    if (skin.price !== -1 && money >= skin.price && !ownedSkins.includes(skin.id)) {
       setMoney(prev => prev - skin.price);
       setOwnedSkins(prev => [...prev, skin.id]);
       setEquippedSkin(skin.id);
@@ -1177,7 +1177,8 @@ export default function App() {
             {SKINS.map(skin => {
                const isOwned = ownedSkins.includes(skin.id);
                const isEquipped = equippedSkin === skin.id;
-               const canAfford = money >= skin.price;
+               const isAchievementSkin = skin.price === -1;
+               const canAfford = !isAchievementSkin && money >= skin.price;
 
                const fontClass = skin.font || 'font-sans';
                const roundedClass = skin.rounded || 'rounded-xl';
@@ -1192,13 +1193,16 @@ export default function App() {
                     <div className="flex-1 text-center sm:text-left rtl:sm:text-right space-y-3 w-full">
                       <div>
                         <h3 className="font-bold text-xl">{skinName}</h3>
-                        {!isOwned && <p className="text-yellow-400 flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-1 font-semibold mt-1"><Coins className="w-4 h-4"/> {skin.price}</p>}
+                        {!isOwned && !isAchievementSkin && <p className="text-yellow-400 flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-1 font-semibold mt-1"><Coins className="w-4 h-4"/> {skin.price}</p>}
+                        {!isOwned && isAchievementSkin && <p className="text-slate-500 flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-1 font-bold mt-1 uppercase text-[10px] tracking-widest"><Award className="w-3 h-3"/> {t.achievements.locked}</p>}
                       </div>
 
                       {isEquipped ? (
                          <button disabled className="w-full py-2 bg-indigo-600/50 text-indigo-200 rounded-lg font-bold border border-indigo-500/50 cursor-default">{t.shop.equipped}</button>
                       ) : isOwned ? (
                          <button onClick={() => setEquippedSkin(skin.id)} className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold transition-colors">{t.shop.equip_skin}</button>
+                      ) : isAchievementSkin ? (
+                         <button disabled className="w-full py-2 bg-slate-700 text-slate-500 rounded-lg font-bold border border-slate-600 cursor-not-allowed uppercase text-xs">{t.achievements.locked}</button>
                       ) : (
                          <button onClick={() => handleBuySkin(skin)} disabled={!canAfford} className={`w-full py-2 rounded-lg font-bold transition-colors ${canAfford ? 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-lg' : 'bg-slate-700 text-slate-500 cursor-not-allowed border border-slate-600'}`}>
                            {canAfford ? t.shop.purchase : t.shop.not_enough}
