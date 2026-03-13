@@ -27,33 +27,33 @@ export async function submitScore(name, score) {
   return data.scores || [];
 }
 
-export async function signup(password, data) {
+export async function signup(name, password, data) {
   const res = await fetch(`${AUTH_URL}/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password, data }),
+    body: JSON.stringify({ name, password, data }),
   });
   const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to signup");
   return result;
 }
 
-export async function login(password) {
+export async function login(name, password) {
   const res = await fetch(`${AUTH_URL}/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password }),
+    body: JSON.stringify({ name, password }),
   });
   const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to login");
   return result;
 }
 
-export async function saveProgress(password, data) {
+export async function saveProgress(name, password, data) {
   const res = await fetch(`${AUTH_URL}/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ password, data }),
+    body: JSON.stringify({ name, password, data }),
   });
   const result = await safeJson(res);
   if (!res.ok) throw new Error(result.error || "Failed to save progress");

@@ -20,36 +20,43 @@ export default async function handler(request) {
 
   try {
     const body = await request.json();
-    const { password, data } = body;
+    const { name, password, data } = body;
 
+    if (!name || typeof name !== "string") {
+      return Response.json({ error: "Name is required" }, { status: 400 });
+    }
     if (!password || typeof password !== "string") {
       return Response.json({ error: "Password is required" }, { status: 400 });
     }
 
-    const userKey = `user:${password}`;
+    const userKey = `user:${name.trim().toLowerCase()}`;
 
     // Handle /api/auth/signup
     if (path.endsWith("/signup")) {
       const existing = await redis.get(userKey);
       if (existing) {
-        return Response.json({ error: "Someone is already using that password" }, { status: 409 });
+        return Response.json({ error: "Someone is already using that name" }, { status: 409 });
       }
-      await redis.set(userKey, JSON.stringify(data || {}));
+      await redis.set(userKey, JSON.stringify({ password, data: data || {} }));
       return Response.json({ success: true });
     }
 
     // Handle /api/auth/login
     if (path.endsWith("/login")) {
-      const userData = await redis.get(userKey);
-      if (!userData) {
-        return Response.json({ error: "Invalid password" }, { status: 401 });
+      const account = await redis.get(userKey);
+      if (!account || account.password !== password) {
+        return Response.json({ error: "Invalid name or password" }, { status: 401 });
       }
-      return Response.json({ success: true, data: userData });
+      return Response.json({ success: true, data: account.data });
     }
 
     // Handle /api/auth/save
     if (path.endsWith("/save")) {
-      await redis.set(userKey, JSON.stringify(data || {}));
+      const account = await redis.get(userKey);
+      if (!account || account.password !== password) {
+         return Response.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      await redis.set(userKey, JSON.stringify({ password, data: data || {} }));
       return Response.json({ success: true });
     }
 

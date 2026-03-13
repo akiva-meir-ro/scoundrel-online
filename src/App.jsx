@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
-  ShoppingBag, Coins, Languages, User, UserCircle
+  ShoppingBag, Coins, Languages, User, UserCircle, Award
 } from 'lucide-react';
 
 import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
@@ -215,7 +215,46 @@ const SKINS = [
     goodColor: 'text-yellow-200 drop-shadow-[2px_2px_0_rgba(236,72,153,1)]', badColor: 'text-cyan-100 drop-shadow-[2px_2px_0_rgba(168,85,247,1)]',
     font: 'font-serif italic tracking-widest', rounded: 'rounded-sm', shadow: 'shadow-[10px_10px_0_rgba(0,0,0,0.5)]',
     icons: { hearts: '🥥', diamonds: '🌴', clubs: '🌅', spades: '🐬' }
+  },
+  {
+    id: 'master', price: -1, // Achievement Only
+    bg: 'bg-stone-900 bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-red-600 border-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]',
+    goodColor: 'text-red-500', badColor: 'text-stone-300',
+    font: 'font-serif font-black', rounded: 'rounded-none', shadow: 'shadow-2xl',
+    icons: { hearts: '🔥', diamonds: '⚔️', clubs: '💀', spades: '👹' }
+  },
+  {
+    id: 'collector', price: -1, // Achievement Only
+    bg: 'bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500', border: 'border-white border-2',
+    goodColor: 'text-white', badColor: 'text-white/80',
+    font: 'font-sans italic', rounded: 'rounded-full', shadow: 'shadow-xl',
+    icons: { hearts: '💎', diamonds: '✨', clubs: '🌟', spades: '🌈' }
+  },
+  {
+    id: 'slayer', price: -1, // Achievement Only
+    bg: 'bg-black border-l-[12px] border-red-900', border: 'border-red-600 border-2',
+    goodColor: 'text-red-500', badColor: 'text-slate-400',
+    font: 'font-mono', rounded: 'rounded-sm', shadow: 'shadow-none',
+    icons: { hearts: '🩸', diamonds: '🔪', clubs: '🦴', spades: '☠️' }
+  },
+  {
+    id: 'god', price: -1, // Achievement Only (The Special One)
+    bg: 'bg-white bg-[radial-gradient(circle_at_center,rgba(255,255,255,1)_0%,rgba(200,200,255,0.2)_100%)] shadow-[0_0_50px_rgba(255,255,255,0.8)]', border: 'border-yellow-400 border-4 animate-pulse',
+    goodColor: 'text-yellow-600 drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]', badColor: 'text-indigo-900',
+    font: 'font-serif font-black tracking-[0.2em]', rounded: 'rounded-3xl', shadow: 'shadow-2xl',
+    icons: { hearts: '☀️', diamonds: '🔱', clubs: '👁️', spades: '🌌' }
   }
+];
+
+const ACHIEVEMENTS = [
+  { id: 'first_win', type: 'win', count: 1, rewardType: 'money', rewardVal: 200 },
+  { id: 'veteran', type: 'win', count: 10, rewardType: 'skin', rewardVal: 'master' },
+  { id: 'rich', type: 'money', count: 5000, rewardType: 'money', rewardVal: 1000 },
+  { id: 'collector', type: 'skins', count: 10, rewardType: 'skin', rewardVal: 'collector' },
+  { id: 'slayer', type: 'kills', count: 100, rewardType: 'skin', rewardVal: 'slayer' },
+  { id: 'perfect', type: 'perfect_win', count: 1, rewardType: 'money', rewardVal: 1500 },
+  { id: 'daily', type: 'daily', rewardType: 'money', rewardVal: 200 },
+  { id: 'god', type: 'complete_all', count: 1, rewardType: 'skin', rewardVal: 'god' }
 ];
 
 const SUITS = {
@@ -310,7 +349,9 @@ export default function App() {
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   // --- AUTH STATE ---
+  const [authName, setAuthName] = useState("");
   const [authPassword, setAuthPassword] = useState("");
+  const [loggedInName, setLoggedInName] = useState("");
   const [loggedInPassword, setLoggedInPassword] = useState("");
   const [authMessage, setAuthMessage] = useState({ text: "", type: "" });
   const [isAuthLoading, setIsAuthLoading] = useState(false);
@@ -318,6 +359,7 @@ export default function App() {
   // --- SHOP & ECONOMY STATE ---
   const [money, setMoney] = useState(0);
   const [lastEarnedMoney, setLastEarnedMoney] = useState(0);
+  const [lastDailyBonus, setLastDailyBonus] = useState(0);
   const [ownedSkins, setOwnedSkins] = useState(['default']);
   const [equippedSkin, setEquippedSkin] = useState('default');
   const [creatorCode, setCreatorCode] = useState("");
@@ -327,6 +369,17 @@ export default function App() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [profileName, setProfileName] = useState("");
   const [profilePictureSkin, setProfilePictureSkin] = useState("default");
+
+  // --- ACHIEVEMENTS STATE ---
+  const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
+  const [unlockedAchievements, setUnlockedAchievements] = useState([]);
+  const [lifetimeStats, setLifetimeStats] = useState({
+    gamesPlayed: 0,
+    gamesWon: 0,
+    monstersKilled: 0,
+    lifetimeMoney: 0,
+    lastDailyDate: null
+  });
 
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
@@ -387,6 +440,37 @@ export default function App() {
     }
   }, [room, deck, health, status, forcedRetreat, canRun, t]);
 
+  const checkAchievements = (newStats, newOwnedSkins, newMoney) => {
+    const newlyUnlocked = [];
+    ACHIEVEMENTS.forEach(ach => {
+      if (unlockedAchievements.includes(ach.id)) return;
+
+      let achieved = false;
+      if (ach.type === 'win') achieved = newStats.gamesWon >= ach.count;
+      if (ach.type === 'money') achieved = newStats.lifetimeMoney >= ach.count;
+      if (ach.type === 'skins') achieved = newOwnedSkins.length >= ach.count;
+      if (ach.type === 'kills') achieved = newStats.monstersKilled >= ach.count;
+      if (ach.type === 'perfect_win' && newStats.lastWinWasPerfect) achieved = true;
+      
+      if (ach.id === 'god') {
+        const others = ACHIEVEMENTS.filter(a => a.id !== 'god');
+        achieved = others.every(a => unlockedAchievements.includes(a.id) || newlyUnlocked.includes(a.id));
+      }
+
+      if (achieved) {
+        newlyUnlocked.push(ach.id);
+        if (ach.rewardType === 'money') {
+          // This will be handled by the caller to avoid infinite loops
+        } else if (ach.rewardType === 'skin') {
+          if (!newOwnedSkins.includes(ach.rewardVal)) {
+            newOwnedSkins.push(ach.rewardVal);
+          }
+        }
+      }
+    });
+    return newlyUnlocked;
+  };
+
   // --- LOGIC: END GAME & SCORING ---
   const endGame = (endStatus, reason, finalHealth) => {
     setStatus(endStatus);
@@ -412,12 +496,49 @@ export default function App() {
     // If logged in and profile name is set, pre-fill player name
     if (profileName) {
       setPlayerName(profileName);
+    } else if (loggedInName) {
+      setPlayerName(loggedInName);
     }
 
     // Calculate money based on the provided formula
     const earnedMoney = Math.max(0, finalScore + 100);
     setLastEarnedMoney(earnedMoney);
-    setMoney(prev => prev + earnedMoney);
+    
+    // Update lifetime stats
+    setLifetimeStats(prev => {
+      const today = new Date().toISOString().split('T')[0];
+      const isNewDay = prev.lastDailyDate !== today;
+      const gotDaily = finalScore > 0 && isNewDay;
+      const dailyBonus = gotDaily ? 200 : 0;
+      setLastDailyBonus(dailyBonus);
+
+      const newStats = {
+        ...prev,
+        gamesPlayed: prev.gamesPlayed + 1,
+        gamesWon: prev.gamesWon + (endStatus === 'won' ? 1 : 0),
+        lifetimeMoney: prev.lifetimeMoney + earnedMoney + dailyBonus,
+        lastWinWasPerfect: endStatus === 'won' && health === 20,
+        lastDailyDate: gotDaily ? today : prev.lastDailyDate
+      };
+
+      // Check achievements
+      const tempOwnedSkins = [...ownedSkins];
+      let bonusMoney = 0;
+      const newlyUnlocked = checkAchievements(newStats, tempOwnedSkins, money + earnedMoney + dailyBonus);
+      
+      if (newlyUnlocked.length > 0) {
+        setUnlockedAchievements(old => [...old, ...newlyUnlocked]);
+        setOwnedSkins(tempOwnedSkins);
+        
+        newlyUnlocked.forEach(id => {
+          const ach = ACHIEVEMENTS.find(a => a.id === id);
+          if (ach.rewardType === 'money') bonusMoney += ach.rewardVal;
+        });
+      }
+
+      setMoney(m => m + earnedMoney + dailyBonus + bonusMoney);
+      return newStats;
+    });
   };
 
   const handleSaveScore = async () => {
@@ -467,6 +588,7 @@ export default function App() {
   const attackBarehanded = (card) => {
     if (cardsPlayed >= 3) return;
     setHealth(prev => prev - card.value);
+    setLifetimeStats(prev => ({ ...prev, monstersKilled: prev.monstersKilled + 1 }));
     removeCardFromRoom(card.id);
   };
 
@@ -475,6 +597,7 @@ export default function App() {
     const damage = Math.max(0, card.value - weapon.value);
     setHealth(prev => prev - damage);
     setLastKilled(card.value);
+    setLifetimeStats(prev => ({ ...prev, monstersKilled: prev.monstersKilled + 1 }));
     removeCardFromRoom(card.id);
   };
 
@@ -538,17 +661,27 @@ export default function App() {
   };
 
   const handleSignup = async () => {
-    if (!authPassword.trim() || isAuthLoading) return;
+    if (!authName.trim() || !authPassword.trim() || isAuthLoading) return;
     setIsAuthLoading(true);
     setAuthMessage({ text: "", type: "" });
     try {
-      const initialData = { money, ownedSkins, equippedSkin, profileName: profileName || "", profilePictureSkin: profilePictureSkin || "default" };
-      await signup(authPassword, initialData);
+      const initialData = { 
+        money, 
+        ownedSkins, 
+        equippedSkin, 
+        profileName: profileName || authName, 
+        profilePictureSkin: profilePictureSkin || "default",
+        lifetimeStats,
+        unlockedAchievements
+      };
+      await signup(authName, authPassword, initialData);
+      setLoggedInName(authName);
       setLoggedInPassword(authPassword);
+      setProfileName(profileName || authName);
       setAuthMessage({ text: t.auth.save_success, type: "success" });
     } catch (e) {
       console.error("Signup error:", e);
-      const msg = e.message === "Someone is already using that password" 
+      const msg = e.message === "Someone is already using that name" 
         ? t.auth.signup_error 
         : `${t.auth.save_error} (${e.message})`;
       setAuthMessage({ text: msg, type: "error" });
@@ -558,21 +691,24 @@ export default function App() {
   };
 
   const handleLogin = async () => {
-    if (!authPassword.trim() || isAuthLoading) return;
+    if (!authName.trim() || !authPassword.trim() || isAuthLoading) return;
     setIsAuthLoading(true);
     setAuthMessage({ text: "", type: "" });
     try {
-      const result = await login(authPassword);
+      const result = await login(authName, authPassword);
+      setLoggedInName(authName);
       setLoggedInPassword(authPassword);
       setMoney(result.data.money || 0);
       setOwnedSkins(result.data.ownedSkins || ['default']);
       setEquippedSkin(result.data.equippedSkin || 'default');
-      setProfileName(result.data.profileName || "");
+      setProfileName(result.data.profileName || authName);
       setProfilePictureSkin(result.data.profilePictureSkin || "default");
-      setAuthMessage({ text: t.auth.logged_in_as, type: "success" });
+      setLifetimeStats(result.data.lifetimeStats || { gamesPlayed: 0, gamesWon: 0, monstersKilled: 0, lifetimeMoney: 0, lastDailyDate: null });
+      setUnlockedAchievements(result.data.unlockedAchievements || []);
+      setAuthMessage({ text: `${t.auth.logged_in_as} ${authName}`, type: "success" });
     } catch (e) {
       console.error("Login error:", e);
-      const msg = e.message === "Invalid password" 
+      const msg = e.message === "Invalid name or password" 
         ? t.auth.login_error 
         : `${t.auth.save_error} (${e.message})`;
       setAuthMessage({ text: msg, type: "error" });
@@ -582,18 +718,30 @@ export default function App() {
   };
 
   const handleLogout = () => {
+    setLoggedInName("");
     setLoggedInPassword("");
+    setAuthName("");
     setAuthPassword("");
     setAuthMessage({ text: "", type: "" });
     setProfileName("");
     setProfilePictureSkin("default");
+    setLifetimeStats({ gamesPlayed: 0, gamesWon: 0, monstersKilled: 0, lifetimeMoney: 0 });
+    setUnlockedAchievements([]);
   };
 
   useEffect(() => {
-    if (loggedInPassword) {
-      saveProgress(loggedInPassword, { money, ownedSkins, equippedSkin, profileName, profilePictureSkin }).catch(console.error);
+    if (loggedInName && loggedInPassword) {
+      saveProgress(loggedInName, loggedInPassword, { 
+        money, 
+        ownedSkins, 
+        equippedSkin, 
+        profileName, 
+        profilePictureSkin,
+        lifetimeStats,
+        unlockedAchievements
+      }).catch(console.error);
     }
-  }, [money, ownedSkins, equippedSkin, loggedInPassword, profileName, profilePictureSkin]);
+  }, [money, ownedSkins, equippedSkin, loggedInName, loggedInPassword, profileName, profilePictureSkin, lifetimeStats, unlockedAchievements]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'he' : 'en');
@@ -690,7 +838,7 @@ export default function App() {
             onClick={() => setIsProfileOpen(true)}
             className="group relative flex items-center justify-center"
           >
-            {loggedInPassword ? (
+            {loggedInName ? (
               <div className={`w-14 h-14 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-2xl shadow-lg transition-transform hover:scale-110`}>
                 <span className={profilePicSkin.badColor}>{profileIcon}</span>
               </div>
@@ -699,16 +847,32 @@ export default function App() {
                 <UserCircle className="w-10 h-10" />
               </div>
             )}
-            <div className={`absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-1 border-2 border-slate-900 ${loggedInPassword ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
+            <div className={`absolute -bottom-1 -right-1 bg-indigo-600 rounded-full p-1 border-2 border-slate-900 ${loggedInName ? 'opacity-0 group-hover:opacity-100' : ''} transition-opacity`}>
               <User className="w-3 h-3 text-white" />
             </div>
           </button>
-          {loggedInPassword && profileName && (
+          {loggedInName && (
             <div className="hidden sm:block">
               <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">{t.menu.profile}</p>
-              <p className="text-white font-black">{profileName}</p>
+              <p className="text-white font-black">{profileName || loggedInName}</p>
             </div>
           )}
+        </div>
+
+        {/* Achievements Button Top-Right */}
+        <div className="absolute top-6 right-6">
+          <button 
+            onClick={() => setIsAchievementsOpen(true)}
+            className="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-2xl text-yellow-500 shadow-lg transition-transform hover:scale-110 flex items-center gap-2"
+          >
+            <Award className="w-6 h-6" />
+            <span className="hidden sm:inline font-bold uppercase text-xs tracking-widest">{t.menu.achievements}</span>
+            {unlockedAchievements.length > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 border-slate-900">
+                {unlockedAchievements.length}
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="max-w-md w-full text-center space-y-6">
@@ -735,6 +899,100 @@ export default function App() {
           </div>
         </div>
 
+        {/* Achievements Modal */}
+        {isAchievementsOpen && (
+          <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+              <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800">
+                <div>
+                  <h2 className="text-2xl font-black text-white flex items-center gap-2"><Award className="text-yellow-500" /> {t.achievements.title}</h2>
+                  <p className="text-xs text-slate-400 font-bold">{t.achievements.desc}</p>
+                </div>
+                <button onClick={() => setIsAchievementsOpen(false)} className="text-slate-400 hover:text-white bg-slate-700 p-2 rounded-xl"><X className="w-6 h-6"/></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {ACHIEVEMENTS.map(ach => {
+                  const today = new Date().toISOString().split('T')[0];
+                  const isDaily = ach.type === 'daily';
+                  const isUnlocked = isDaily 
+                    ? lifetimeStats.lastDailyDate === today 
+                    : unlockedAchievements.includes(ach.id);
+                  const skinReward = ach.rewardType === 'skin' ? SKINS.find(s => s.id === ach.rewardVal) : null;
+                  
+                  // Progress calculation
+                  let currentProgress = 0;
+                  let targetProgress = ach.count || 1;
+                  if (ach.type === 'win') currentProgress = lifetimeStats.gamesWon;
+                  if (ach.type === 'money') currentProgress = lifetimeStats.lifetimeMoney;
+                  if (ach.type === 'skins') currentProgress = ownedSkins.length;
+                  if (ach.type === 'kills') currentProgress = lifetimeStats.monstersKilled;
+                  if (ach.type === 'perfect_win') currentProgress = lifetimeStats.lastWinWasPerfect ? 1 : 0;
+                  if (ach.type === 'daily') currentProgress = lifetimeStats.lastDailyDate === today ? 1 : 0;
+                  if (ach.id === 'god') {
+                    currentProgress = unlockedAchievements.filter(id => id !== 'god').length;
+                    targetProgress = ACHIEVEMENTS.length - 2; // Subtract god and daily
+                  }
+
+                  const progressPercent = Math.min(100, (currentProgress / targetProgress) * 100);
+
+                  return (
+                    <div key={ach.id} className={`p-4 rounded-2xl border transition-all ${isUnlocked ? 'bg-indigo-600/10 border-indigo-500/50' : 'bg-slate-900/50 border-slate-700 grayscale opacity-70'}`}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className={`font-black text-lg ${isUnlocked ? 'text-white' : 'text-slate-400'}`}>{t.achievements.list[ach.id]}</h4>
+                            {isUnlocked && <Check className="w-4 h-4 text-green-400" />}
+                          </div>
+                          <p className="text-sm text-slate-400 font-medium leading-tight">{t.achievements.list[`${ach.id}_desc`]}</p>
+                          
+                          {/* Progress Bar */}
+                          {!isUnlocked && (
+                            <div className="pt-2">
+                              <div className="flex justify-between text-[10px] font-black text-slate-500 uppercase mb-1">
+                                <span>Progress</span>
+                                <span>{currentProgress} / {targetProgress}</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                <div className="h-full bg-indigo-500 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Reward Icon */}
+                        <div className="flex flex-col items-center gap-1 min-w-[80px]">
+                          <span className="text-[10px] font-black text-slate-500 uppercase">{t.achievements.reward}</span>
+                          {ach.rewardType === 'money' ? (
+                            <div className="flex items-center gap-1 text-yellow-400 font-black bg-yellow-400/10 px-2 py-1 rounded-lg border border-yellow-400/20">
+                              <Coins className="w-3 h-3" /> {ach.rewardVal}
+                            </div>
+                          ) : (
+                            <div className={`w-10 h-14 rounded-lg border-2 flex items-center justify-center text-xl shadow-lg ${skinReward?.bg} ${skinReward?.border}`}>
+                              <span className={skinReward?.badColor}>{skinReward?.icons ? skinReward.icons['spades'] : '♠️'}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* God Status Footer */}
+              <div className="p-6 bg-slate-900/50 border-t border-slate-700 text-center">
+                 {unlockedAchievements.includes('god') ? (
+                    <div className="flex items-center justify-center gap-3 text-yellow-400 font-black italic tracking-[0.2em] animate-pulse">
+                      <Award className="w-6 h-6" /> {t.achievements.all_completed} <Award className="w-6 h-6" />
+                    </div>
+                 ) : (
+                    <p className="text-xs text-slate-500 font-bold italic">{t.achievements.master_skin_desc}</p>
+                 )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Profile Modal */}
         {isProfileOpen && (
           <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
@@ -748,7 +1006,7 @@ export default function App() {
                 {/* Auth Section */}
                 <section className="space-y-4">
                   <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.auth.title}</h3>
-                  {loggedInPassword ? (
+                  {loggedInName ? (
                     <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-xl`}>
@@ -756,13 +1014,20 @@ export default function App() {
                         </div>
                         <div>
                           <p className="text-xs text-slate-500 font-bold uppercase">{t.auth.logged_in_as}</p>
-                          <p className="text-white font-mono">{"*".repeat(loggedInPassword.length)}</p>
+                          <p className="text-white font-black">{loggedInName}</p>
                         </div>
                       </div>
                       <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-xl transition-colors"><LogOut className="w-5 h-5"/></button>
                     </div>
                   ) : (
                     <div className="space-y-3">
+                      <input
+                        type="text"
+                        placeholder={t.auth.name_placeholder}
+                        value={authName}
+                        onChange={(e) => setAuthName(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                      />
                       <input
                         type="password"
                         placeholder={t.auth.password_placeholder}
@@ -774,10 +1039,10 @@ export default function App() {
                         <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
                       )}
                       <div className="grid grid-cols-2 gap-2">
-                        <button onClick={handleSignup} disabled={!authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <button onClick={handleSignup} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                           {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.signup}
                         </button>
-                        <button onClick={handleLogin} disabled={!authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                        <button onClick={handleLogin} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
                           {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.login}
                         </button>
                       </div>
@@ -786,7 +1051,7 @@ export default function App() {
                 </section>
 
                 {/* Profile Customization (Only if logged in) */}
-                {loggedInPassword && (
+                {loggedInName && (
                   <section className="space-y-6">
                     <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.menu.profile}</h3>
                     
@@ -952,6 +1217,14 @@ export default function App() {
             {lastEarnedMoney > 0 && (
                 <div className="text-yellow-400 font-bold flex items-center justify-center gap-1 mt-2">
                     <Coins className="w-5 h-5" /> +{lastEarnedMoney} {t.menu.coins}
+                </div>
+            )}
+            {lastDailyBonus > 0 && (
+                <div className="text-indigo-400 font-black flex flex-col items-center justify-center gap-1 mt-3 p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-lg animate-bounce">
+                    <div className="text-[10px] uppercase tracking-widest">{t.achievements.list.daily}</div>
+                    <div className="flex items-center gap-1">
+                        <Award className="w-5 h-5" /> +{lastDailyBonus} {t.menu.coins}
+                    </div>
                 </div>
             )}
           </div>
