@@ -10,17 +10,17 @@ async function safeJson(res) {
   }
 }
 
-export async function fetchLeaderboard() {
-  const res = await fetch(API_URL);
+export async function fetchLeaderboard(difficulty = "normal") {
+  const res = await fetch(`${API_URL}?difficulty=${difficulty}`);
   const data = await safeJson(res);
   return data.scores || [];
 }
 
-export async function submitScore(name, score) {
+export async function submitScore(name, score, difficulty = "normal") {
   const res = await fetch(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, score }),
+    body: JSON.stringify({ name, score, difficulty }),
   });
   const data = await safeJson(res);
   if (!res.ok) throw new Error(data.error || "Failed to save score");

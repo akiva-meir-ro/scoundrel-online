@@ -67,6 +67,19 @@ equip_skin = "הצטייד בעיצוב"
 purchase = "רכישה"
 not_enough = "אין מספיק מטבעות"
 
+[difficulty]
+title = "רמת קושי"
+beginner = "מתחיל"
+beginner_desc = "קלפי מלוכה אדומים + בריחות ללא הגבלה"
+easy = "קל"
+easy_desc = "נוספו קלפי מלוכה אדומים"
+normal = "רגיל"
+normal_desc = "חוקים רגילים"
+hard = "קשה"
+hard_desc = "מתחילים עם 10 חיים"
+impossible = "בלתי אפשרי"
+impossible_desc = "מתחילים עם 5 חיים"
+
 [leaderboard]
 title = "לוח תוצאות"
 no_scores = "אין תוצאות עדיין. השלם ריצה כדי להיות הראשון!"

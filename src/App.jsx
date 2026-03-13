@@ -343,10 +343,13 @@ const formatValue = (val, system, isFace = false) => {
   return val;
 };
 
-const buildDeck = () => {
+const buildDeck = (difficulty = 'normal') => {
   const deck = [];
+  const includeRedFace = (difficulty === 'beginner' || difficulty === 'easy');
+  
   Object.keys(SUITS).forEach(suit => {
-    const maxVal = (suit === 'hearts' || suit === 'diamonds') ? 10 : 14;
+    const isRed = (suit === 'hearts' || suit === 'diamonds');
+    const maxVal = (isRed && !includeRedFace) ? 10 : 14;
     for (let i = 2; i <= maxVal; i++) {
       deck.push({ suit, value: i, id: `${suit}-${i}` });
     }
@@ -363,7 +366,8 @@ export default function App() {
   const [language, setLanguage] = useState('en');
   const t = LOCALES[language];
 
-  const [leaderboard, setLeaderboard] = useState([]);
+  const [difficulty, setDifficulty] = useState('normal');
+  const [leaderboardDifficulty, setLeaderboardDifficulty] = useState('normal');
   const [deck, setDeck] = useState([]);
   const [room, setRoom] = useState([]);
   const [health, setHealth] = useState(20);
@@ -382,6 +386,7 @@ export default function App() {
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [showDifficultySelect, setShowDifficultySelect] = useState(false);
 
   // --- AUTH STATE ---
   const [authName, setAuthName] = useState("");
@@ -418,25 +423,31 @@ export default function App() {
 
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
-  const TOTAL_CARDS_IN_GAME = 44;
+  const TOTAL_CARDS_IN_GAME = (difficulty === 'beginner' || difficulty === 'easy') ? 52 : 44;
 
-  const loadLeaderboard = async () => {
+  const loadLeaderboard = async (diff = leaderboardDifficulty) => {
     try {
-      const scores = await fetchLeaderboard();
+      const scores = await fetchLeaderboard(diff);
       setLeaderboard(scores);
     } catch (e) {
       console.error("Leaderboard fetch error:", e);
     }
   };
 
-  useEffect(() => { loadLeaderboard(); }, []);
+  useEffect(() => { loadLeaderboard(); }, [leaderboardDifficulty]);
 
-  const startGame = () => {
-    const newDeck = buildDeck();
+  const startGame = (diff = difficulty) => {
+    setDifficulty(diff);
+    const newDeck = buildDeck(diff);
     const initialRoom = newDeck.splice(0, 4);
+    
+    let initialHealth = 20;
+    if (diff === 'hard') initialHealth = 10;
+    if (diff === 'impossible') initialHealth = 5;
+
     setDeck(newDeck);
     setRoom(initialRoom);
-    setHealth(20);
+    setHealth(initialHealth);
     setWeapon(null);
     setLastKilled(null);
     setCardsPlayed(0);
@@ -448,6 +459,7 @@ export default function App() {
     setScoreSaved(false);
     setPlayerName("");
     setShowExitConfirm(false);
+    setShowDifficultySelect(false);
   };
 
   const forcedRetreat = status === 'playing' && room.filter(c => c.suit === 'hearts').length >= 3 && cardsPlayed === 0;
@@ -526,6 +538,8 @@ export default function App() {
       setLastKilled(0);
     }
 
+    // Multiply score based on difficulty? No requirement mentioned, but maybe it should be.
+    // User didn't ask for score multipliers, just separate leaderboards.
     setScore(finalScore);
 
     // If logged in and profile name is set, pre-fill player name
@@ -581,7 +595,7 @@ export default function App() {
     setIsSaving(true);
     setSaveError("");
     try {
-      const scores = await submitScore(playerName, score);
+      const scores = await submitScore(playerName, score, difficulty);
       setLeaderboard(scores);
       setScoreSaved(true);
     } catch (e) {
@@ -655,7 +669,7 @@ export default function App() {
     const newRoom = newDeck.splice(0, 4);
     setRoom(newRoom);
     setDeck(newDeck);
-    if (!isFirstRoomEver) {
+    if (!isFirstRoomEver && difficulty !== 'beginner') {
       setCanRun(false);
     }
   };
@@ -924,8 +938,41 @@ export default function App() {
             <Coins className="w-5 h-5" /> {money} {t.menu.coins}
           </div>
 
-          <div className="space-y-3 pt-6">
-            <button onClick={startGame} className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg"><Play className="w-6 h-6" /> {t.menu.enter}</button>
+          <div className="space-y-3 pt-6 relative">
+            <div className="flex gap-2">
+              <button onClick={() => startGame()} className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors text-lg shadow-lg">
+                <Play className="w-6 h-6" /> {t.menu.enter}
+              </button>
+              <button 
+                onClick={() => setShowDifficultySelect(!showDifficultySelect)} 
+                className={`bg-slate-800 hover:bg-slate-700 border border-slate-700 p-4 rounded-xl transition-colors shadow-lg flex items-center justify-center ${showDifficultySelect ? 'ring-2 ring-indigo-500 bg-slate-700' : ''}`}
+                title={t.difficulty.title}
+              >
+                <ShieldAlert className={`w-6 h-6 ${difficulty === 'normal' ? 'text-slate-400' : difficulty === 'hard' ? 'text-orange-500' : difficulty === 'impossible' ? 'text-red-500' : 'text-green-400'}`} />
+              </button>
+            </div>
+
+            {showDifficultySelect && (
+              <div className="absolute bottom-full left-0 right-0 mb-3 bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in slide-in-from-bottom-2">
+                <div className="text-xs font-black text-slate-500 uppercase tracking-widest mb-2 px-2 flex justify-between">
+                  <span>{t.difficulty.title}</span>
+                  <span className="text-indigo-400">{t.difficulty[difficulty]}</span>
+                </div>
+                <div className="grid grid-cols-1 gap-1">
+                  {['beginner', 'easy', 'normal', 'hard', 'impossible'].map((diff) => (
+                    <button
+                      key={diff}
+                      onClick={() => { setDifficulty(diff); setShowDifficultySelect(false); }}
+                      className={`flex flex-col items-start p-3 rounded-xl transition-all ${difficulty === diff ? 'bg-indigo-600 text-white' : 'hover:bg-slate-700 text-slate-300'}`}
+                    >
+                      <span className="font-bold text-sm">{t.difficulty[diff]}</span>
+                      <span className={`text-[10px] ${difficulty === diff ? 'text-indigo-100' : 'text-slate-500'} font-medium`}>{t.difficulty[`${diff}_desc`]}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <button onClick={() => { loadLeaderboard(); setStatus('leaderboard'); }} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><Trophy className="w-5 h-5" /> {t.menu.top10}</button>
               <button onClick={() => setStatus('shop')} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-yellow-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors"><ShoppingBag className="w-5 h-5" /> {t.menu.shop}</button>
@@ -1220,11 +1267,31 @@ export default function App() {
 
   if (status === 'leaderboard') {
     return (
-      <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12`}>
+      <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12 overflow-y-auto`}>
         <div className="max-w-md w-full bg-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-700">
           <h1 className="text-3xl font-black text-indigo-400 flex items-center justify-center gap-2"><Trophy className="w-8 h-8" /> {t.leaderboard.title}</h1>
-          <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden">
-            {leaderboard.length === 0 ? <div className="p-8 text-center text-slate-400">{t.leaderboard.no_scores}</div> : (
+          
+          <div className="flex flex-wrap gap-1 bg-slate-900/50 p-1 rounded-xl border border-slate-700">
+            {['beginner', 'easy', 'normal', 'hard', 'impossible'].map((diff) => (
+              <button
+                key={diff}
+                onClick={() => setLeaderboardDifficulty(diff)}
+                className={`flex-1 min-w-[70px] py-2 px-1 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all ${leaderboardDifficulty === diff ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                {t.difficulty[diff]}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-slate-900 rounded-xl border border-slate-700 overflow-hidden min-h-[300px] flex flex-col">
+            {leaderboard.length === 0 ? (
+              <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-4">
+                <div className="bg-slate-800 p-4 rounded-full">
+                  <Skull className="w-8 h-8 text-slate-600" />
+                </div>
+                <p className="text-slate-400 text-sm font-medium">{t.leaderboard.no_scores}</p>
+              </div>
+            ) : (
               <div className="flex flex-col">
                 {leaderboard.slice(0, 10).map((entry, idx) => (
                   <div key={entry.id} className={`flex justify-between items-center p-4 ${idx < Math.min(leaderboard.length, 10) - 1 ? 'border-b border-slate-800' : ''}`}>

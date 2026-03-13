@@ -8,17 +8,20 @@ const redis = new Redis({
   url: process.env.KV_REST_API_URL,
   token: process.env.KV_REST_API_TOKEN,
 });
-const LEADERBOARD_KEY = "scoundrel:leaderboard";
+const LEADERBOARD_PREFIX = "scoundrel:leaderboard";
 const MAX_ENTRIES = 50;
 const MAX_NAME_LENGTH = 15;
 
-async function getLeaderboard() {
-  const data = await redis.get(LEADERBOARD_KEY);
+async function getLeaderboard(difficulty = "normal") {
+  const key = `${LEADERBOARD_PREFIX}:${difficulty}`;
+  const data = await redis.get(key);
   return data || [];
 }
 
-async function handleGet() {
-  const scores = await getLeaderboard();
+async function handleGet(request) {
+  const url = new URL(request.url);
+  const difficulty = url.searchParams.get("difficulty") || "normal";
+  const scores = await getLeaderboard(difficulty);
   return Response.json({ scores });
 }
 
@@ -26,6 +29,7 @@ async function handlePost(request) {
   const body = await request.json();
   const name = typeof body.name === "string" ? body.name.trim().slice(0, MAX_NAME_LENGTH) : "";
   const score = body.score;
+  const difficulty = body.difficulty || "normal";
 
   if (!name) {
     return Response.json({ error: "Name is required" }, { status: 400 });
@@ -34,7 +38,7 @@ async function handlePost(request) {
     return Response.json({ error: "Score must be a finite number" }, { status: 400 });
   }
 
-  const scores = await getLeaderboard();
+  const scores = await getLeaderboard(difficulty);
   scores.push({
     id: crypto.randomUUID(),
     name,
@@ -44,7 +48,7 @@ async function handlePost(request) {
   scores.sort((a, b) => b.score - a.score);
   const trimmed = scores.slice(0, MAX_ENTRIES);
 
-  await redis.set(LEADERBOARD_KEY, JSON.stringify(trimmed));
+  await redis.set(`${LEADERBOARD_PREFIX}:${difficulty}`, JSON.stringify(trimmed));
   return Response.json({ success: true, scores: trimmed });
 }
 

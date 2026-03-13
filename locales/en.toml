@@ -67,6 +67,19 @@ equip_skin = "Equip Skin"
 purchase = "Purchase"
 not_enough = "Not enough coins"
 
+[difficulty]
+title = "Difficulty"
+beginner = "Beginner"
+beginner_desc = "Red face cards + Infinite skips"
+easy = "Easy"
+easy_desc = "Red face cards added"
+normal = "Normal"
+normal_desc = "Standard rules"
+hard = "Hard"
+hard_desc = "Start with 10 HP"
+impossible = "Impossible"
+impossible_desc = "Start with 5 HP"
+
 [leaderboard]
 title = "Leaderboard"
 no_scores = "No scores yet. Complete a run to be the first!"
