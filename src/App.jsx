@@ -1144,7 +1144,13 @@ export default function App() {
             <div className="bg-slate-800 border border-slate-700 rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
               <div className="p-6 border-b border-slate-700 flex justify-between items-center sticky top-0 bg-slate-800 z-10">
                 <h2 className="text-2xl font-black text-white flex items-center gap-2"><User className="text-indigo-400" /> {t.profile.title}</h2>
-                <button onClick={() => setIsProfileOpen(false)} className="text-slate-400 hover:text-white bg-slate-700 p-2 rounded-xl"><X className="w-6 h-6"/></button>
+                <div className="flex items-center gap-2">
+                  <button onClick={toggleLanguage} className="text-slate-400 hover:text-white bg-slate-700 p-2 rounded-xl flex items-center gap-2 transition-colors">
+                    <Languages className="w-5 h-5" />
+                    <span className="text-xs font-bold uppercase">{language === 'en' ? 'עב' : 'EN'}</span>
+                  </button>
+                  <button onClick={() => setIsProfileOpen(false)} className="text-slate-400 hover:text-white bg-slate-700 p-2 rounded-xl transition-colors"><X className="w-6 h-6"/></button>
+                </div>
               </div>
 
               <div className="p-6 space-y-8">
