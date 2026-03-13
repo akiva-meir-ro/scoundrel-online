@@ -217,6 +217,41 @@ const SKINS = [
     icons: { hearts: '🥥', diamonds: '🌴', clubs: '🌅', spades: '🐬' }
   },
   {
+    id: 'void', price: 12500,
+    bg: 'bg-black bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.1)_0,transparent_100%)]', border: 'border-slate-800 border-2 shadow-[0_0_20px_rgba(0,0,0,1)]',
+    goodColor: 'text-purple-600 drop-shadow-[0_0_8px_rgba(139,92,246,0.4)]', badColor: 'text-slate-500',
+    font: 'font-mono uppercase', rounded: 'rounded-none', shadow: 'shadow-none',
+    icons: { hearts: '🌑', diamonds: '💠', clubs: '👤', spades: '🌀' }
+  },
+  {
+    id: 'neon', price: 15000,
+    bg: 'bg-zinc-950 bg-[linear-gradient(to_right,#18181b_1px,transparent_1px),linear-gradient(to_bottom,#18181b_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-lime-400 border-2 shadow-[0_0_15px_rgba(163,230,53,0.5)]',
+    goodColor: 'text-lime-400 drop-shadow-[0_0_10px_rgba(163,230,53,0.8)]', badColor: 'text-zinc-600',
+    font: 'font-mono', rounded: 'rounded-sm', shadow: 'shadow-none',
+    icons: { hearts: '⚡', diamonds: '🔋', clubs: '📟', spades: '📡' }
+  },
+  {
+    id: 'galaxy', price: 25000,
+    bg: 'bg-slate-950 bg-[radial-gradient(ellipse_at_top,rgba(30,58,138,0.3)_0%,transparent_70%),radial-gradient(ellipse_at_bottom,rgba(88,28,135,0.3)_0%,transparent_70%)]', border: 'border-indigo-400 border-2',
+    goodColor: 'text-indigo-300 drop-shadow-[0_0_12px_rgba(165,180,252,0.8)]', badColor: 'text-purple-300',
+    font: 'font-sans italic', rounded: 'rounded-3xl', shadow: 'shadow-[0_0_25px_rgba(79,70,229,0.2)]',
+    icons: { hearts: '🌟', diamonds: '☄️', clubs: '🛸', spades: '🌌' }
+  },
+  {
+    id: 'mythic', price: 50000,
+    bg: 'bg-amber-950 bg-[radial-gradient(circle_at_center,rgba(245,158,11,0.2)_0%,transparent_100%),repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(251,191,36,0.05)_10px,rgba(251,191,36,0.05)_20px)]', border: 'border-amber-500 border-4 shadow-[0_0_30px_rgba(245,158,11,0.4)]',
+    goodColor: 'text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]', badColor: 'text-amber-100',
+    font: 'font-serif font-black uppercase tracking-[0.1em]', rounded: 'rounded-none', shadow: 'shadow-2xl',
+    icons: { hearts: '⚜️', diamonds: '⚔️', clubs: '🐲', spades: '🔱' }
+  },
+  {
+    id: 'eternal', price: 100000,
+    bg: 'bg-slate-100 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.1)_0%,transparent_100%),linear-gradient(to_br,white,rgba(224,242,254,0.5))] shadow-[inset_0_0_50px_rgba(255,255,255,1)]', border: 'border-sky-400 border-4 animate-pulse',
+    goodColor: 'text-sky-600 font-black', badColor: 'text-slate-800',
+    font: 'font-sans font-black tracking-tighter', rounded: 'rounded-[3rem]', shadow: 'shadow-[0_0_40px_rgba(56,189,248,0.3)]',
+    icons: { hearts: '💎', diamonds: '🏹', clubs: '🕊️', spades: '🏔️' }
+  },
+  {
     id: 'master', price: -1, // Achievement Only
     bg: 'bg-stone-900 bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-red-600 border-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]',
     goodColor: 'text-red-500', badColor: 'text-stone-300',
