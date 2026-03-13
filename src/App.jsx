@@ -410,6 +410,22 @@ const buildDeck = (difficulty = 'normal') => {
   return deck;
 };
 
+const INITIAL_STATS = {
+  gamesPlayed: 0,
+  gamesWon: 0,
+  difficultyWins: {
+    beginner: 0,
+    easy: 0,
+    normal: 0,
+    hard: 0,
+    impossible: 0
+  },
+  monstersKilled: 0,
+  lifetimeMoney: 0,
+  lastDailyDate: null,
+  lastWinWasPerfect: false
+};
+
 export default function App() {
   const [language, setLanguage] = useState('en');
   const t = LOCALES[language];
@@ -462,20 +478,7 @@ export default function App() {
   // --- ACHIEVEMENTS STATE ---
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
-  const [lifetimeStats, setLifetimeStats] = useState({
-    gamesPlayed: 0,
-    gamesWon: 0,
-    difficultyWins: {
-      beginner: 0,
-      easy: 0,
-      normal: 0,
-      hard: 0,
-      impossible: 0
-    },
-    monstersKilled: 0,
-    lifetimeMoney: 0,
-    lastDailyDate: null
-  });
+  const [lifetimeStats, setLifetimeStats] = useState(INITIAL_STATS);
 
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
@@ -549,11 +552,17 @@ export default function App() {
       if (unlockedAchievements.includes(ach.id)) return;
 
       let achieved = false;
-      if (ach.type === 'win') achieved = newStats.gamesWon >= ach.count;
-      if (ach.type === 'difficulty_win') achieved = (newStats.difficultyWins[ach.difficulty] || 0) >= ach.count;
-      if (ach.type === 'money') achieved = newStats.lifetimeMoney >= ach.count;
-      if (ach.type === 'skins') achieved = newOwnedSkins.length >= ach.count;
-      if (ach.type === 'kills') achieved = newStats.monstersKilled >= ach.count;
+      const gamesWon = newStats.gamesWon || 0;
+      const monstersKilled = newStats.monstersKilled || 0;
+      const lifetimeMoney = newStats.lifetimeMoney || 0;
+      const skinsCount = newOwnedSkins.length || 0;
+      const diffWins = newStats.difficultyWins || {};
+
+      if (ach.type === 'win') achieved = gamesWon >= ach.count;
+      if (ach.type === 'difficulty_win') achieved = (diffWins[ach.difficulty] || 0) >= ach.count;
+      if (ach.type === 'money') achieved = lifetimeMoney >= ach.count;
+      if (ach.type === 'skins') achieved = skinsCount >= ach.count;
+      if (ach.type === 'kills') achieved = monstersKilled >= ach.count;
       if (ach.type === 'perfect_win' && newStats.lastWinWasPerfect) achieved = true;
       
       if (ach.id === 'god') {
@@ -564,7 +573,7 @@ export default function App() {
       if (achieved) {
         newlyUnlocked.push(ach.id);
         if (ach.rewardType === 'money') {
-          // This will be handled by the caller to avoid infinite loops
+          // Handled by caller
         } else if (ach.rewardType === 'skin') {
           if (!newOwnedSkins.includes(ach.rewardVal)) {
             newOwnedSkins.push(ach.rewardVal);
@@ -595,43 +604,40 @@ export default function App() {
       setLastKilled(0);
     }
 
-    // Multiply score based on difficulty? No requirement mentioned, but maybe it should be.
-    // User didn't ask for score multipliers, just separate leaderboards.
     setScore(finalScore);
 
-    // If logged in and profile name is set, pre-fill player name
     if (profileName) {
       setPlayerName(profileName);
     } else if (loggedInName) {
       setPlayerName(loggedInName);
     }
 
-    // Calculate money based on the provided formula
     const earnedMoney = Math.max(0, finalScore + 100);
     setLastEarnedMoney(earnedMoney);
     
-    // Update lifetime stats
     setLifetimeStats(prev => {
+      const safePrev = { ...INITIAL_STATS, ...prev };
       const today = new Date().toISOString().split('T')[0];
-      const isNewDay = prev.lastDailyDate !== today;
+      const isNewDay = safePrev.lastDailyDate !== today;
       const gotDaily = finalScore > 0 && isNewDay;
       const dailyBonus = gotDaily ? 200 : 0;
       setLastDailyBonus(dailyBonus);
 
+      const oldDiffWins = safePrev.difficultyWins || INITIAL_STATS.difficultyWins;
+
       const newStats = {
-        ...prev,
-        gamesPlayed: prev.gamesPlayed + 1,
-        gamesWon: prev.gamesWon + (endStatus === 'won' ? 1 : 0),
+        ...safePrev,
+        gamesPlayed: (safePrev.gamesPlayed || 0) + 1,
+        gamesWon: (safePrev.gamesWon || 0) + (endStatus === 'won' ? 1 : 0),
         difficultyWins: {
-          ...prev.difficultyWins,
-          [difficulty]: prev.difficultyWins[difficulty] + (endStatus === 'won' ? 1 : 0)
+          ...oldDiffWins,
+          [difficulty]: (oldDiffWins[difficulty] || 0) + (endStatus === 'won' ? 1 : 0)
         },
-        lifetimeMoney: prev.lifetimeMoney + earnedMoney + dailyBonus,
+        lifetimeMoney: (safePrev.lifetimeMoney || 0) + earnedMoney + dailyBonus,
         lastWinWasPerfect: endStatus === 'won' && health === 20,
-        lastDailyDate: gotDaily ? today : prev.lastDailyDate
+        lastDailyDate: gotDaily ? today : safePrev.lastDailyDate
       };
 
-      // Check achievements
       const tempOwnedSkins = [...ownedSkins];
       let bonusMoney = 0;
       const newlyUnlocked = checkAchievements(newStats, tempOwnedSkins, money + earnedMoney + dailyBonus);
@@ -698,7 +704,10 @@ export default function App() {
   const attackBarehanded = (card) => {
     if (cardsPlayed >= 3) return;
     setHealth(prev => prev - card.value);
-    setLifetimeStats(prev => ({ ...prev, monstersKilled: prev.monstersKilled + 1 }));
+    setLifetimeStats(prev => {
+        const safePrev = { ...INITIAL_STATS, ...prev };
+        return { ...safePrev, monstersKilled: (safePrev.monstersKilled || 0) + 1 };
+    });
     removeCardFromRoom(card.id);
   };
 
@@ -707,9 +716,13 @@ export default function App() {
     const damage = Math.max(0, card.value - weapon.value);
     setHealth(prev => prev - damage);
     setLastKilled(card.value);
-    setLifetimeStats(prev => ({ ...prev, monstersKilled: prev.monstersKilled + 1 }));
+    setLifetimeStats(prev => {
+        const safePrev = { ...INITIAL_STATS, ...prev };
+        return { ...safePrev, monstersKilled: (safePrev.monstersKilled || 0) + 1 };
+    });
     removeCardFromRoom(card.id);
   };
+
 
   const nextRoom = () => {
     if (cardsPlayed < 3 && room.length > 0) return;
@@ -815,7 +828,7 @@ export default function App() {
       setEquippedSkin(result.data.equippedSkin || 'default');
       setProfileName(result.data.profileName || authName);
       setProfilePictureSkin(result.data.profilePictureSkin || "default");
-      setLifetimeStats(result.data.lifetimeStats || { gamesPlayed: 0, gamesWon: 0, monstersKilled: 0, lifetimeMoney: 0, lastDailyDate: null });
+      setLifetimeStats({ ...INITIAL_STATS, ...(result.data.lifetimeStats || {}) });
       setUnlockedAchievements(result.data.unlockedAchievements || []);
       setAuthMessage({ text: `${t.auth.logged_in_as} ${authName}`, type: "success" });
     } catch (e) {
@@ -837,9 +850,10 @@ export default function App() {
     setAuthMessage({ text: "", type: "" });
     setProfileName("");
     setProfilePictureSkin("default");
-    setLifetimeStats({ gamesPlayed: 0, gamesWon: 0, monstersKilled: 0, lifetimeMoney: 0 });
+    setLifetimeStats(INITIAL_STATS);
     setUnlockedAchievements([]);
   };
+
 
   useEffect(() => {
     if (loggedInName && loggedInPassword) {
@@ -1055,19 +1069,29 @@ export default function App() {
                   const today = new Date().toISOString().split('T')[0];
                   const isDaily = ach.type === 'daily';
                   const isUnlocked = isDaily 
-                    ? lifetimeStats.lastDailyDate === today 
+                    ? (lifetimeStats.lastDailyDate || null) === today 
                     : unlockedAchievements.includes(ach.id);
                   const skinReward = ach.rewardType === 'skin' ? SKINS.find(s => s.id === ach.rewardVal) : null;
                   
                   // Progress calculation
                   let currentProgress = 0;
                   let targetProgress = ach.count || 1;
-                  if (ach.type === 'win') currentProgress = lifetimeStats.gamesWon;
-                  if (ach.type === 'money') currentProgress = lifetimeStats.lifetimeMoney;
+                  
+                  const gamesWon = lifetimeStats.gamesWon || 0;
+                  const lifetimeMoney = lifetimeStats.lifetimeMoney || 0;
+                  const monstersKilled = lifetimeStats.monstersKilled || 0;
+                  const lastWinWasPerfect = lifetimeStats.lastWinWasPerfect || false;
+                  const lastDailyDate = lifetimeStats.lastDailyDate || null;
+                  const diffWins = lifetimeStats.difficultyWins || {};
+
+                  if (ach.type === 'win') currentProgress = gamesWon;
+                  if (ach.type === 'money') currentProgress = lifetimeMoney;
                   if (ach.type === 'skins') currentProgress = ownedSkins.length;
-                  if (ach.type === 'kills') currentProgress = lifetimeStats.monstersKilled;
-                  if (ach.type === 'perfect_win') currentProgress = lifetimeStats.lastWinWasPerfect ? 1 : 0;
-                  if (ach.type === 'daily') currentProgress = lifetimeStats.lastDailyDate === today ? 1 : 0;
+                  if (ach.type === 'kills') currentProgress = monstersKilled;
+                  if (ach.type === 'perfect_win') currentProgress = lastWinWasPerfect ? 1 : 0;
+                  if (ach.type === 'daily') currentProgress = lastDailyDate === today ? 1 : 0;
+                  if (ach.type === 'difficulty_win') currentProgress = diffWins[ach.difficulty] || 0;
+
                   if (ach.id === 'god') {
                     currentProgress = unlockedAchievements.filter(id => id !== 'god').length;
                     targetProgress = ACHIEVEMENTS.length - 2; // Subtract god and daily
