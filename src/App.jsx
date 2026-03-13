@@ -214,7 +214,7 @@ const SKINS = [
     bg: 'bg-gradient-to-br from-fuchsia-400 via-purple-400 to-cyan-400 bg-[linear-gradient(to_bottom,transparent_50%,rgba(255,255,255,0.2)_50%)] [background-size:100%_4px]', border: 'border-yellow-300 border-4',
     goodColor: 'text-yellow-200 drop-shadow-[2px_2px_0_rgba(236,72,153,1)]', badColor: 'text-cyan-100 drop-shadow-[2px_2px_0_rgba(168,85,247,1)]',
     font: 'font-serif italic tracking-widest', rounded: 'rounded-sm', shadow: 'shadow-[10px_10px_0_rgba(0,0,0,0.5)]',
-    icons: { hearts: '🥥', diamonds: '🌴', clubs: '🐬', spades: '🌅' }
+    icons: { hearts: '🥥', diamonds: '🌴', clubs: '🌅', spades: '🐬' }
   }
 ];
 
@@ -362,7 +362,7 @@ export default function App() {
     setShowExitConfirm(false);
   };
 
-  const forcedRetreat = status === 'playing' && room.filter(c => c.suit === 'hearts').length >= 3;
+  const forcedRetreat = status === 'playing' && room.filter(c => c.suit === 'hearts').length >= 3 && cardsPlayed === 0;
 
   // --- LOGIC: GAME STATE WATCHER ---
   useEffect(() => {
@@ -380,6 +380,7 @@ export default function App() {
       return;
     }
 
+    // If forced to retreat (3+ potions) but already used the "run" ability in previous room
     if (forcedRetreat && !canRun) {
       endGame('lost', t.game_over.lose_reason_trapped, health);
       return;

@@ -12,12 +12,12 @@ profile = "Profile"
 [menu.rules]
 title = "How to Play"
 hearts_label = "Hearts:"
-hearts_desc = " Health (+HP, Max 20). 1 per room max."
+hearts_desc = " Health (+HP, Max 20). Only 1 per room. If 3 appear at once, you MUST skip the room."
 diamonds_label = "Diamonds:"
-diamonds_desc = " Weapons. Equip to fight."
+diamonds_desc = " Weapons. Reduces monster damage (Monster - Weapon = Damage). After killing a monster of value X, the weapon can only be used against monsters of value X or less."
 monsters_label = "Clubs/Spades:"
 monsters_desc = " Monsters. Defeat them to survive."
-rule_3_cards = "Rule: You can only play exactly 3 cards per room."
+rule_3_cards = "Room: Select exactly 3 cards per room to proceed. You can skip a room once, but not twice in a row (except the very first room)."
 
 [profile]
 title = "Adventurer Profile"
