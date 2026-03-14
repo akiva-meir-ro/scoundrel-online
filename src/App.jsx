@@ -775,7 +775,7 @@ export default function App() {
   const handleRedeemCode = () => {
     const trimmed = creatorCode.trim();
     const lower = trimmed.toLowerCase();
-    if (lower === 'pizza pizza and more pizza' || lower === 'pamp' || trimmed === 'אוריה עמיחי ויאיר המלחים') {
+    if (lower === 'pizza pizza and more pizza' || lower === 'pamp' || trimmed === 'אוריה עמיחי ויאיר המלכים') {
       setOwnedSkins(SKINS.map(s => s.id));
       setCodeMessage({ text: t.shop.msg_success, type: "success" });
       setCreatorCode("");
