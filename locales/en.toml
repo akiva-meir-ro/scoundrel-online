@@ -123,6 +123,7 @@ weapon = "Weapon"
 hp = "HP"
 deck_label = "Deck"
 max_weapon = "Max"
+none = "None"
 
 [exit_modal]
 title = "Flee the Dungeon?"

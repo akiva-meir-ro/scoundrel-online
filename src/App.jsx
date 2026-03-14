@@ -1481,7 +1481,7 @@ export default function App() {
             <Sword className={`w-5 h-5 sm:w-6 sm:h-6 ${weapon ? 'text-indigo-400' : 'text-slate-600'}`} />
             <div className="flex flex-col">
               <span className="text-sm sm:text-lg font-black leading-none">
-                {weapon ? formatValue(weapon.value, currentSkin.numeralSystem) : 'None'}
+                {weapon ? formatValue(weapon.value, currentSkin.numeralSystem) : t.playing.none}
               </span>
               {weapon && currentSkin.numeralSystem && (
                 <span className="text-[9px] text-indigo-400 font-mono uppercase mt-0.5">

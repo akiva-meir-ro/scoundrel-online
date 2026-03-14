@@ -123,6 +123,7 @@ weapon = "נשק"
 hp = "חיים"
 deck_label = "חפיסה"
 max_weapon = "מקסימום"
+none = "אין"
 
 [exit_modal]
 title = "לברוח מהמבוך?"
