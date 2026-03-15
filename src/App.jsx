@@ -813,12 +813,12 @@ export default function App() {
       setLoggedInName(authName);
       setLoggedInPassword(authPassword);
       setProfileName(profileName || authName);
-      setAuthMessage({ text: t.auth.save_success, type: "success" });
+      setAuthMessage({ text: t.profile.save_success, type: "success" });
     } catch (e) {
       console.error("Signup error:", e);
       const msg = e.message === "Someone is already using that name" 
-        ? t.auth.signup_error 
-        : `${t.auth.save_error} (${e.message})`;
+        ? t.profile.signup_error 
+        : `${t.profile.save_error} (${e.message})`;
       setAuthMessage({ text: msg, type: "error" });
     } finally {
       setIsAuthLoading(false);
@@ -840,12 +840,12 @@ export default function App() {
       setProfilePictureSkin(result.data.profilePictureSkin || "default");
       setLifetimeStats({ ...INITIAL_STATS, ...(result.data.lifetimeStats || {}) });
       setUnlockedAchievements(result.data.unlockedAchievements || []);
-      setAuthMessage({ text: `${t.auth.logged_in_as} ${authName}`, type: "success" });
+      setAuthMessage({ text: `${t.profile.logged_in_as} ${authName}`, type: "success" });
     } catch (e) {
       console.error("Login error:", e);
       const msg = e.message === "Invalid name or password" 
-        ? t.auth.login_error 
-        : `${t.auth.save_error} (${e.message})`;
+        ? t.profile.login_error 
+        : `${t.profile.save_error} (${e.message})`;
       setAuthMessage({ text: msg, type: "error" });
     } finally {
       setIsAuthLoading(false);
