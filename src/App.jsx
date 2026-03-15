@@ -1302,13 +1302,12 @@ export default function App() {
               </div>
             </div>
           </div>
-        </div>
-        </motion.div>
-        );
-        }
+        )}
+      </motion.div>
+    );
+  }
 
-        if (status === 'shop') {
-
+  if (status === 'shop') {
     return (
       <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12 overflow-y-auto`}>
         <div className="max-w-2xl w-full space-y-6">
