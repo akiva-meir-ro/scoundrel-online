@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
-  ShoppingBag, Coins, Languages, User, UserCircle, Award
+  ShoppingBag, Coins, Languages, User, UserCircle, Award, Volume2, VolumeX
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
+import { audio } from './audio';
 import en from '../locales/en.toml';
 import he from '../locales/he.toml';
 
@@ -588,6 +590,7 @@ export default function App() {
   const endGame = (endStatus, reason, finalHealth) => {
     setStatus(endStatus);
     setLoseReason(reason);
+    if (endStatus === 'won') audio.playWin(); else audio.playLose();
 
     const effectiveHealth = finalHealth !== undefined ? finalHealth : health;
     let finalScore = 0;
@@ -683,14 +686,17 @@ export default function App() {
     const type = SUITS[card.suit].type;
     if (type === 'potion') {
       if (potionsUsed >= 1) return;
+      audio.playFlip();
       setHealth(prev => Math.min(20, prev + card.value));
       setPotionsUsed(prev => prev + 1);
       removeCardFromRoom(card.id);
     } else if (type === 'weapon') {
+      audio.playFlip();
       setWeapon(card);
       setLastKilled(null);
       removeCardFromRoom(card.id);
     } else if (type === 'monster') {
+      audio.playFlip();
       setSelectedCardId(card.id);
     }
   };
@@ -703,6 +709,7 @@ export default function App() {
 
   const attackBarehanded = (card) => {
     if (cardsPlayed >= 3) return;
+    audio.playDamage();
     setHealth(prev => prev - card.value);
     setLifetimeStats(prev => {
         const safePrev = { ...INITIAL_STATS, ...prev };
@@ -714,6 +721,7 @@ export default function App() {
   const attackWithWeapon = (card) => {
     if (!weapon || cardsPlayed >= 3) return;
     const damage = Math.max(0, card.value - weapon.value);
+    if (damage > 0) audio.playDamage(); else audio.playFlip();
     setHealth(prev => prev - damage);
     setLastKilled(card.value);
     setLifetimeStats(prev => {
@@ -726,6 +734,7 @@ export default function App() {
 
   const nextRoom = () => {
     if (cardsPlayed < 3 && room.length > 0) return;
+    audio.playFlip();
     const newDeck = [...deck];
     const needed = 4 - room.length;
     const drawn = newDeck.splice(0, needed);
@@ -738,6 +747,7 @@ export default function App() {
 
   const runAway = () => {
     if (!canRun || cardsPlayed > 0) return;
+    audio.playFlip();
     const isFirstRoomEver = (deck.length + room.length) === TOTAL_CARDS_IN_GAME;
     const newDeck = [...deck, ...room];
     const newRoom = newDeck.splice(0, 4);
@@ -873,6 +883,13 @@ export default function App() {
     setLanguage(prev => prev === 'en' ? 'he' : 'en');
   };
 
+  const [audioEnabled, setAudioEnabled] = useState(true);
+
+  const toggleAudio = () => {
+    const newVal = audio.toggle();
+    setAudioEnabled(newVal);
+  };
+
   const Card = ({ card }) => {
     const isSelected = selectedCardId === card.id;
     const { icon, type, category } = SUITS[card.suit];
@@ -892,7 +909,12 @@ export default function App() {
     const typeLabel = type === 'potion' ? 'HEAL' : type === 'weapon' ? 'WEAPON' : 'ENEMY';
 
     return (
-      <div
+      <motion.div
+        layoutId={card.id}
+        initial={{ scale: 0.8, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.5, opacity: 0, y: -20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
         onClick={() => handleCardClick(card)}
         className={`relative w-28 h-40 sm:w-32 sm:h-48 border-2 flex flex-col justify-between p-3 cursor-pointer transform transition-all duration-200
           ${currentSkin.bg} ${currentSkin.border} ${fontClass} ${roundedClass} ${shadowClass}
@@ -941,7 +963,7 @@ export default function App() {
             <button onClick={() => setSelectedCardId(null)} className="mt-1 text-slate-300 hover:text-white text-xs underline">{t.exit_modal.cancel}</button>
           </div>
         )}
-      </div>
+      </motion.div>
     );
   };
 
@@ -957,7 +979,18 @@ export default function App() {
     const profileIcon = profilePicSkin.icons ? profilePicSkin.icons['spades'] : '♠️';
 
     return (
-      <div {...containerProps} className={`${containerProps.className} items-center justify-center p-6 relative`}>
+      <motion.div 
+        {...containerProps} 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className={`${containerProps.className} items-center justify-center p-6 relative`}
+      >
+        {/* Audio Toggle */}
+        <div className="absolute top-24 left-6">
+           <button onClick={toggleAudio} className="bg-slate-800 hover:bg-slate-700 border border-slate-700 p-3 rounded-xl text-slate-400 transition-colors shadow-lg">
+             {audioEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+           </button>
+        </div>
         {/* Profile Button Top-Left */}
         <div className="absolute top-6 left-6 flex items-center gap-3">
           <button 
@@ -1458,7 +1491,19 @@ export default function App() {
 
   // Active Game View ('playing')
   return (
-    <div {...containerProps}>
+    <div {...containerProps} className={`${containerProps.className} relative overflow-hidden`}>
+      {/* Low Health Vignette */}
+      <AnimatePresence>
+        {health <= 5 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: (6 - health) * 0.1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 pointer-events-none z-[100] shadow-[inset_0_0_100px_rgba(220,38,38,0.5)]"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header Stats */}
       <div className="max-w-4xl w-full mx-auto flex flex-wrap justify-between items-center bg-slate-800 p-3 sm:p-4 rounded-2xl shadow-lg border border-slate-700 my-6 gap-4">
         <div className="flex items-center gap-4 sm:gap-6">
@@ -1517,7 +1562,9 @@ export default function App() {
         )}
         
         <div className="flex flex-wrap justify-center gap-3 sm:gap-6 items-center min-h-[16rem]">
-          {room.map(card => <Card key={card.id} card={card} />)}
+          <AnimatePresence mode="popLayout">
+            {room.map(card => <Card key={card.id} card={card} />)}
+          </AnimatePresence>
           {room.length === 0 && deck.length > 0 && (
             <div className="text-slate-500 font-bold text-xl uppercase tracking-widest animate-pulse">{t.playing.room_cleared}</div>
           )}
