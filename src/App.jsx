@@ -1207,7 +1207,7 @@ export default function App() {
               <div className="p-6 space-y-8">
                 {/* Auth Section */}
                 <section className="space-y-4">
-                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.auth.title}</h3>
+                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.profile.title}</h3>
                   {loggedInName ? (
                     <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
                       <div className="flex items-center gap-4">
@@ -1215,7 +1215,7 @@ export default function App() {
                           <span className={profilePicSkin.badColor}>{profileIcon}</span>
                         </div>
                         <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase">{t.auth.logged_in_as}</p>
+                          <p className="text-xs text-slate-500 font-bold uppercase">{t.profile.logged_in_as}</p>
                           <p className="text-white font-black">{loggedInName}</p>
                         </div>
                       </div>
@@ -1225,14 +1225,14 @@ export default function App() {
                     <div className="space-y-3">
                       <input
                         type="text"
-                        placeholder={t.auth.name_placeholder}
+                        placeholder={t.profile.name_placeholder}
                         value={authName}
                         onChange={(e) => setAuthName(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
                       />
                       <input
                         type="password"
-                        placeholder={t.auth.password_placeholder}
+                        placeholder={t.profile.password_placeholder}
                         value={authPassword}
                         onChange={(e) => setAuthPassword(e.target.value)}
                         className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
@@ -1242,10 +1242,10 @@ export default function App() {
                       )}
                       <div className="grid grid-cols-2 gap-2">
                         <button onClick={handleSignup} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.signup}
+                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.signup}
                         </button>
                         <button onClick={handleLogin} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.auth.login}
+                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.login}
                         </button>
                       </div>
                     </div>
