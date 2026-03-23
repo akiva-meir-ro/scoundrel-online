@@ -3,7 +3,7 @@ import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
   ShoppingBag, Coins, Languages, User, UserCircle, Award, Volume2, VolumeX
-} from 'luעקצןמןcide-react';
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
