@@ -1436,7 +1436,13 @@ export default function App() {
                         <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <span><b>{t.menu.rules.diamonds_label}</b>{t.menu.rules.diamonds_desc}</span></p>
                         <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
                         <hr className="border-slate-700 my-2" />
-                        <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
+                        <p className="text-xs text-indigo-400 font-bold mb-3">{t.menu.rules.rule_3_cards}</p>
+                        <button 
+                          onClick={() => { setShowTutorial(true); setTutorialStep(1); setIsProfileOpen(false); }}
+                          className="w-full bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 font-bold py-2 rounded-xl border border-indigo-500/30 transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Play className="w-4 h-4" /> {t.tutorial.title}
+                        </button>
                       </div>
                     </section>
                   </>
