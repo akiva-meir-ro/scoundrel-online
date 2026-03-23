@@ -322,6 +322,54 @@ const SKINS = [
     goodColor: 'text-yellow-600 drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]', badColor: 'text-yellow-900',
     font: 'font-serif italic font-black uppercase tracking-widest', rounded: 'rounded-2xl', shadow: 'shadow-2xl',
     icons: { hearts: '⭐', diamonds: '🔱', clubs: '🐲', spades: '👑' }
+  },
+  {
+    id: 'red', price: 10,
+    bg: 'bg-red-50', border: 'border-red-200',
+    goodColor: 'text-red-600', badColor: 'text-red-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'blue', price: 10,
+    bg: 'bg-blue-50', border: 'border-blue-200',
+    goodColor: 'text-blue-600', badColor: 'text-blue-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'green', price: 10,
+    bg: 'bg-emerald-50', border: 'border-emerald-200',
+    goodColor: 'text-emerald-600', badColor: 'text-emerald-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'yellow', price: 10,
+    bg: 'bg-yellow-50', border: 'border-yellow-200',
+    goodColor: 'text-yellow-600', badColor: 'text-yellow-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'purple', price: 10,
+    bg: 'bg-purple-50', border: 'border-purple-200',
+    goodColor: 'text-purple-600', badColor: 'text-purple-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'orange', price: 10,
+    bg: 'bg-orange-50', border: 'border-orange-200',
+    goodColor: 'text-orange-600', badColor: 'text-orange-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'pink', price: 10,
+    bg: 'bg-pink-50', border: 'border-pink-200',
+    goodColor: 'text-pink-600', badColor: 'text-pink-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+  },
+  {
+    id: 'teal', price: 10,
+    bg: 'bg-teal-50', border: 'border-teal-200',
+    goodColor: 'text-teal-600', badColor: 'text-teal-900',
+    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
   }
 ];
 
