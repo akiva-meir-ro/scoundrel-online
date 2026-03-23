@@ -1471,8 +1471,9 @@ export default function App() {
           </div>
         </div>
       </div>
-    );
-  }
+    </>
+  );
+}
 
   if (status === 'leaderboard') {
     return (
