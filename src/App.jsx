@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
-  ShoppingBag, Coins, Languages, User, UserCircle, Award, Volume2, VolumeX
+  ShoppingBag, Coins, Languages, User, UserCircle, Award, Volume2, VolumeX,
+  ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +15,47 @@ import he from '../locales/he.toml';
 const LOCALES = { en, he };
 
 // ----------------------------------------
+
+const ScrollToTop = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const toggleVisibility = () => {
+      if (window.scrollY > 300) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener("scroll", toggleVisibility);
+    return () => window.removeEventListener("scroll", toggleVisibility);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.button
+          initial={{ opacity: 0, y: 20, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 20, scale: 0.8 }}
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-[150] bg-indigo-600 text-white p-3 rounded-full shadow-2xl hover:bg-indigo-500 transition-colors border border-indigo-400/50 backdrop-blur-sm"
+          aria-label="Scroll to top"
+        >
+          <ChevronUp className="w-6 h-6" />
+        </motion.button>
+      )}
+    </AnimatePresence>
+  );
+};
 
 const SKINS = [
   {
@@ -1354,7 +1396,9 @@ export default function App() {
 
   if (status === 'shop') {
     return (
-      <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12 overflow-y-auto`}>
+      <>
+        <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12`}>
+
         <div className="max-w-2xl w-full space-y-6">
           <div className="flex justify-between items-center bg-slate-800 p-4 rounded-2xl border border-slate-700">
              <button onClick={() => setStatus('menu')} className="bg-slate-700 hover:bg-slate-600 text-white font-bold p-2 rounded-xl transition-colors"><ChevronLeft className={`w-6 h-6 ${isRTL ? 'transform rotate-180' : ''}`} /></button>
