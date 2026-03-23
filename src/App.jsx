@@ -365,6 +365,16 @@ const SKINS = [
     icons: { hearts: '💎', diamonds: '🏹', clubs: '🕊️', spades: '🏔️' }
   },
   {
+    id: 'spectrum', price: -1, // Achievement Only
+    bg: 'bg-[conic-gradient(from_0deg,#ef4444,#f59e0b,#10b981,#3b82f6,#8b5cf6,#ef4444)]',
+    border: 'border-white border-2 shadow-[0_0_15px_rgba(255,255,255,0.5)]',
+    goodColor: 'text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]',
+    badColor: 'text-white/90',
+    font: 'font-sans font-black italic',
+    rounded: 'rounded-2xl',
+    shadow: 'shadow-2xl',
+  },
+  {
     id: 'master', price: -1, // Achievement Only
     bg: 'bg-stone-900 bg-[radial-gradient(#444_1px,transparent_1px)] [background-size:20px_20px]', border: 'border-red-600 border-4 shadow-[0_0_20px_rgba(220,38,38,0.5)]',
     goodColor: 'text-red-500', badColor: 'text-stone-300',
@@ -429,6 +439,7 @@ const ACHIEVEMENTS = [
   { id: 'hard_master', type: 'difficulty_win', difficulty: 'hard', count: 5, rewardType: 'skin', rewardVal: 'knight' },
   { id: 'impossible_master', type: 'difficulty_win', difficulty: 'impossible', count: 1, rewardType: 'skin', rewardVal: 'demon' },
   { id: 'scoundrel_legend', type: 'win', count: 100, rewardType: 'skin', rewardVal: 'legend' },
+  { id: 'color_collector', type: 'special', rewardType: 'skin', rewardVal: 'spectrum' },
   { id: 'god', type: 'complete_all', count: 1, rewardType: 'skin', rewardVal: 'god' }
 ];
 
@@ -564,6 +575,7 @@ export default function App() {
 
   // --- NEW PROFILE STATE ---
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileTab, setProfileTab] = useState('settings');
   const [profileName, setProfileName] = useState("");
   const [profilePictureSkin, setProfilePictureSkin] = useState("default");
 
@@ -571,6 +583,11 @@ export default function App() {
   const [isAchievementsOpen, setIsAchievementsOpen] = useState(false);
   const [unlockedAchievements, setUnlockedAchievements] = useState([]);
   const [lifetimeStats, setLifetimeStats] = useState(INITIAL_STATS);
+
+  // --- TUTORIAL STATE ---
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(1);
+  const [tutorialCompleted, setTutorialCompleted] = useState(false);
 
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
@@ -660,6 +677,11 @@ export default function App() {
       if (ach.id === 'god') {
         const others = ACHIEVEMENTS.filter(a => a.id !== 'god');
         achieved = others.every(a => unlockedAchievements.includes(a.id) || newlyUnlocked.includes(a.id));
+      }
+
+      if (ach.id === 'color_collector') {
+        const targetSkins = ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'teal'];
+        achieved = targetSkins.every(s => newOwnedSkins.includes(s));
       }
 
       if (achieved) {
@@ -897,12 +919,15 @@ export default function App() {
         profileName: profileName || authName, 
         profilePictureSkin: profilePictureSkin || "default",
         lifetimeStats,
-        unlockedAchievements
+        unlockedAchievements,
+        tutorialCompleted: false
       };
       await signup(authName, authPassword, initialData);
       setLoggedInName(authName);
       setLoggedInPassword(authPassword);
       setProfileName(profileName || authName);
+      setTutorialCompleted(false);
+      setShowTutorial(true);
       setAuthMessage({ text: t.profile.save_success, type: "success" });
     } catch (e) {
       console.error("Signup error:", e);
@@ -930,6 +955,12 @@ export default function App() {
       setProfilePictureSkin(result.data.profilePictureSkin || "default");
       setLifetimeStats({ ...INITIAL_STATS, ...(result.data.lifetimeStats || {}) });
       setUnlockedAchievements(result.data.unlockedAchievements || []);
+      const isTutorialDone = result.data.tutorialCompleted || false;
+      setTutorialCompleted(isTutorialDone);
+      if (!isTutorialDone) {
+        setShowTutorial(true);
+        setTutorialStep(1);
+      }
       setAuthMessage({ text: `${t.profile.logged_in_as} ${authName}`, type: "success" });
     } catch (e) {
       console.error("Login error:", e);
@@ -952,6 +983,8 @@ export default function App() {
     setProfilePictureSkin("default");
     setLifetimeStats(INITIAL_STATS);
     setUnlockedAchievements([]);
+    setTutorialCompleted(false);
+    setShowTutorial(false);
   };
 
 
@@ -964,10 +997,11 @@ export default function App() {
         profileName, 
         profilePictureSkin,
         lifetimeStats,
-        unlockedAchievements
+        unlockedAchievements,
+        tutorialCompleted
       }).catch(console.error);
     }
-  }, [money, ownedSkins, equippedSkin, loggedInName, loggedInPassword, profileName, profilePictureSkin, lifetimeStats, unlockedAchievements]);
+  }, [money, ownedSkins, equippedSkin, loggedInName, loggedInPassword, profileName, profilePictureSkin, lifetimeStats, unlockedAchievements, tutorialCompleted]);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'he' : 'en');
@@ -1075,6 +1109,7 @@ export default function App() {
         animate={{ opacity: 1 }}
         className={`${containerProps.className} items-center justify-center p-6 relative`}
       >
+        <ScrollToTop />
         {/* Profile Button Top-Left */}
         <div className="absolute top-6 left-6 flex items-center gap-3">
           <button 
@@ -1291,101 +1326,168 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Tabs */}
+              <div className="flex border-b border-slate-700">
+                <button 
+                  onClick={() => setProfileTab('settings')}
+                  className={`flex-1 py-4 font-black uppercase tracking-widest text-sm transition-colors ${profileTab === 'settings' ? 'text-indigo-400 border-b-2 border-indigo-400 bg-slate-700/30' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  {t.stats.tab_profile}
+                </button>
+                <button 
+                  onClick={() => setProfileTab('stats')}
+                  className={`flex-1 py-4 font-black uppercase tracking-widest text-sm transition-colors ${profileTab === 'stats' ? 'text-indigo-400 border-b-2 border-indigo-400 bg-slate-700/30' : 'text-slate-500 hover:text-slate-300'}`}
+                >
+                  {t.stats.tab_stats}
+                </button>
+              </div>
+
               <div className="p-6 space-y-8">
-                {/* Auth Section */}
-                <section className="space-y-4">
-                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.profile.title}</h3>
-                  {loggedInName ? (
-                    <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-12 h-12 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-xl`}>
-                          <span className={profilePicSkin.badColor}>{profileIcon}</span>
+                {profileTab === 'settings' ? (
+                  <>
+                    {/* Auth Section */}
+                    <section className="space-y-4">
+                      <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.profile.title}</h3>
+                      {loggedInName ? (
+                        <div className="flex items-center justify-between bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 rounded-full border-2 ${profilePicSkin.border} ${profilePicSkin.bg} flex items-center justify-center text-xl`}>
+                              <span className={profilePicSkin.badColor}>{profileIcon}</span>
+                            </div>
+                            <div>
+                              <p className="text-xs text-slate-500 font-bold uppercase">{t.profile.logged_in_as}</p>
+                              <p className="text-white font-black">{loggedInName}</p>
+                            </div>
+                          </div>
+                          <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-xl transition-colors"><LogOut className="w-5 h-5"/></button>
                         </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase">{t.profile.logged_in_as}</p>
-                          <p className="text-white font-black">{loggedInName}</p>
+                      ) : (
+                        <div className="space-y-3">
+                          <input
+                            type="text"
+                            placeholder={t.profile.name_placeholder}
+                            value={authName}
+                            onChange={(e) => setAuthName(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                          />
+                          <input
+                            type="password"
+                            placeholder={t.profile.password_placeholder}
+                            value={authPassword}
+                            onChange={(e) => setAuthPassword(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
+                          />
+                          {authMessage.text && (
+                            <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
+                          )}
+                          <div className="grid grid-cols-2 gap-2">
+                            <button onClick={handleSignup} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                              {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.signup}
+                            </button>
+                            <button onClick={handleLogin} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
+                              {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.login}
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                      <button onClick={handleLogout} className="bg-red-600/20 hover:bg-red-600/30 text-red-400 p-2 rounded-xl transition-colors"><LogOut className="w-5 h-5"/></button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <input
-                        type="text"
-                        placeholder={t.profile.name_placeholder}
-                        value={authName}
-                        onChange={(e) => setAuthName(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
-                      />
-                      <input
-                        type="password"
-                        placeholder={t.profile.password_placeholder}
-                        value={authPassword}
-                        onChange={(e) => setAuthPassword(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 placeholder-slate-500"
-                      />
-                      {authMessage.text && (
-                        <p className={`text-xs font-bold ${authMessage.type === 'success' ? 'text-green-400' : 'text-red-400'}`}>{authMessage.text}</p>
                       )}
-                      <div className="grid grid-cols-2 gap-2">
-                        <button onClick={handleSignup} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.signup}
-                        </button>
-                        <button onClick={handleLogin} disabled={!authName.trim() || !authPassword.trim() || isAuthLoading} className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold py-3 rounded-xl transition-colors flex items-center justify-center gap-2">
-                          {isAuthLoading ? <RefreshCw className="w-4 h-4 animate-spin"/> : t.profile.login}
-                        </button>
+                    </section>
+
+                    {/* Profile Customization (Only if logged in) */}
+                    {loggedInName && (
+                      <section className="space-y-6">
+                        <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.menu.profile}</h3>
+                        
+                        {/* Name Input */}
+                        <div className="space-y-2">
+                          <label className="text-sm text-slate-400 font-bold px-1">{t.profile.display_name}</label>
+                          <input
+                            type="text"
+                            placeholder={t.profile.placeholder_name}
+                            value={profileName}
+                            onChange={(e) => setProfileName(e.target.value.slice(0, 15))}
+                            className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 font-bold"
+                          />
+                        </div>
+
+                        {/* Profile Picture (Skin Select) */}
+                        <div className="space-y-3">
+                          <label className="text-sm text-slate-400 font-bold px-1">{t.profile.profile_picture}</label>
+                          <p className="text-xs text-slate-500 px-1">{t.profile.select_skin_desc}</p>
+                          <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto p-2 bg-slate-900/50 rounded-2xl border border-slate-700">
+                            {SKINS.filter(s => ownedSkins.includes(s.id)).map(skin => (
+                              <button
+                                key={skin.id}
+                                onClick={() => setProfilePictureSkin(skin.id)}
+                                className={`w-12 h-16 rounded-lg border-2 flex items-center justify-center text-xl transition-all ${profilePictureSkin === skin.id ? 'border-indigo-500 scale-110 shadow-lg' : 'border-slate-700 opacity-60 hover:opacity-100'} ${skin.bg}`}
+                              >
+                                <span className={skin.badColor}>{skin.icons ? skin.icons['spades'] : '♠️'}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </section>
+                    )}
+
+                    {/* Instructions Section */}
+                    <section className="space-y-4">
+                      <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2"><Skull className="w-4 h-4"/> {t.menu.rules.title}</h3>
+                      <div className="bg-slate-900/50 p-5 rounded-2xl text-sm space-y-3 border border-slate-700">
+                        <p className="flex items-center gap-2"><Heart className="w-4 text-red-500"/> <span><b>{t.menu.rules.hearts_label}</b>{t.menu.rules.hearts_desc}</span></p>
+                        <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <span><b>{t.menu.rules.diamonds_label}</b>{t.menu.rules.diamonds_desc}</span></p>
+                        <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
+                        <hr className="border-slate-700 my-2" />
+                        <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
+                      </div>
+                    </section>
+                  </>
+                ) : (
+                  <div className="space-y-6">
+                    <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2"><Trophy className="w-4 h-4"/> {t.stats.title}</h3>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 text-center">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">{t.stats.games_played}</p>
+                        <p className="text-2xl font-black text-white">{lifetimeStats.gamesPlayed || 0}</p>
+                      </div>
+                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 text-center">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">{t.stats.games_won}</p>
+                        <p className="text-2xl font-black text-green-400">{lifetimeStats.gamesWon || 0}</p>
+                      </div>
+                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 text-center">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">{t.stats.win_rate}</p>
+                        <p className="text-2xl font-black text-indigo-400">
+                          {lifetimeStats.gamesPlayed > 0 ? Math.round((lifetimeStats.gamesWon / lifetimeStats.gamesPlayed) * 100) : 0}%
+                        </p>
+                      </div>
+                      <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 text-center">
+                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">{t.stats.monsters_killed}</p>
+                        <p className="text-2xl font-black text-red-400">{lifetimeStats.monstersKilled || 0}</p>
                       </div>
                     </div>
-                  )}
-                </section>
 
-                {/* Profile Customization (Only if logged in) */}
-                {loggedInName && (
-                  <section className="space-y-6">
-                    <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2">{t.menu.profile}</h3>
-                    
-                    {/* Name Input */}
-                    <div className="space-y-2">
-                      <label className="text-sm text-slate-400 font-bold px-1">{t.profile.display_name}</label>
-                      <input
-                        type="text"
-                        placeholder={t.profile.placeholder_name}
-                        value={profileName}
-                        onChange={(e) => setProfileName(e.target.value.slice(0, 15))}
-                        className="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 font-bold"
-                      />
+                    <div className="bg-slate-900/50 p-4 rounded-2xl border border-slate-700 flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                         <div className="bg-yellow-400/10 p-2 rounded-lg border border-yellow-400/20">
+                           <Coins className="w-5 h-5 text-yellow-400" />
+                         </div>
+                         <span className="text-sm text-slate-300 font-bold">{t.stats.lifetime_money}</span>
+                       </div>
+                       <span className="text-xl font-black text-yellow-400">{lifetimeStats.lifetimeMoney || 0}</span>
                     </div>
 
-                    {/* Profile Picture (Skin Select) */}
                     <div className="space-y-3">
-                      <label className="text-sm text-slate-400 font-bold px-1">{t.profile.profile_picture}</label>
-                      <p className="text-xs text-slate-500 px-1">{t.profile.select_skin_desc}</p>
-                      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto p-2 bg-slate-900/50 rounded-2xl border border-slate-700">
-                        {SKINS.filter(s => ownedSkins.includes(s.id)).map(skin => (
-                          <button
-                            key={skin.id}
-                            onClick={() => setProfilePictureSkin(skin.id)}
-                            className={`w-12 h-16 rounded-lg border-2 flex items-center justify-center text-xl transition-all ${profilePictureSkin === skin.id ? 'border-indigo-500 scale-110 shadow-lg' : 'border-slate-700 opacity-60 hover:opacity-100'} ${skin.bg}`}
-                          >
-                            <span className={skin.badColor}>{skin.icons ? skin.icons['spades'] : '♠️'}</span>
-                          </button>
+                      <h4 className="text-xs text-slate-500 font-black uppercase tracking-widest px-1">{t.stats.difficulty_breakdown}</h4>
+                      <div className="space-y-2">
+                        {['beginner', 'easy', 'normal', 'hard', 'impossible'].map(diff => (
+                          <div key={diff} className="flex items-center justify-between bg-slate-900/30 px-4 py-2 rounded-xl border border-slate-700/50">
+                            <span className="text-sm font-bold text-slate-400">{t.difficulty[diff]}</span>
+                            <span className="font-black text-white">{lifetimeStats.difficultyWins?.[diff] || 0}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
-                  </section>
-                )}
-
-                {/* Instructions Section */}
-                <section className="space-y-4">
-                  <h3 className="text-indigo-400 font-bold flex items-center gap-2 border-b border-slate-700 pb-2"><Skull className="w-4 h-4"/> {t.menu.rules.title}</h3>
-                  <div className="bg-slate-900/50 p-5 rounded-2xl text-sm space-y-3 border border-slate-700">
-                    <p className="flex items-center gap-2"><Heart className="w-4 text-red-500"/> <span><b>{t.menu.rules.hearts_label}</b>{t.menu.rules.hearts_desc}</span></p>
-                    <p className="flex items-center gap-2"><Sword className="w-4 text-red-500"/> <span><b>{t.menu.rules.diamonds_label}</b>{t.menu.rules.diamonds_desc}</span></p>
-                    <p className="flex items-center gap-2"><Skull className="w-4 text-slate-400"/> <span><b>{t.menu.rules.monsters_label}</b>{t.menu.rules.monsters_desc}</span></p>
-                    <hr className="border-slate-700 my-2" />
-                    <p className="text-xs text-indigo-400 font-bold">{t.menu.rules.rule_3_cards}</p>
                   </div>
-                </section>
+                )}
               </div>
             </div>
           </div>
@@ -1397,6 +1499,7 @@ export default function App() {
   if (status === 'shop') {
     return (
       <>
+        <ScrollToTop />
         <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12`}>
 
         <div className="max-w-2xl w-full space-y-6">
@@ -1478,6 +1581,7 @@ export default function App() {
   if (status === 'leaderboard') {
     return (
       <div {...containerProps} className={`${containerProps.className} items-center p-6 sm:p-12 overflow-y-auto`}>
+        <ScrollToTop />
         <div className="max-w-md w-full bg-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 border border-slate-700">
           <h1 className="text-3xl font-black text-indigo-400 flex items-center justify-center gap-2"><Trophy className="w-8 h-8" /> {t.leaderboard.title}</h1>
           
