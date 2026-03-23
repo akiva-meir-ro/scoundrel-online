@@ -589,6 +589,16 @@ export default function App() {
   const [tutorialStep, setTutorialStep] = useState(1);
   const [tutorialCompleted, setTutorialCompleted] = useState(false);
 
+  // --- INITIAL CHECK FOR TUTORIAL ---
+  useEffect(() => {
+    const isCompleted = localStorage.getItem('scoundrel_tutorial_completed');
+    if (isCompleted === 'true') {
+      setTutorialCompleted(true);
+    } else if (!loggedInName) {
+      setShowTutorial(true);
+    }
+  }, [loggedInName]);
+
   const currentSkin = SKINS.find(s => s.id === equippedSkin) || SKINS[0];
 
   const TOTAL_CARDS_IN_GAME = (difficulty === 'beginner' || difficulty === 'easy') ? 52 : 44;
@@ -987,6 +997,12 @@ export default function App() {
     setShowTutorial(false);
   };
 
+
+  const finishTutorial = () => {
+    setShowTutorial(false);
+    setTutorialCompleted(true);
+    localStorage.setItem('scoundrel_tutorial_completed', 'true');
+  };
 
   useEffect(() => {
     if (loggedInName && loggedInPassword) {
@@ -1493,6 +1509,73 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Tutorial Modal */}
+        {showTutorial && (
+          <div className="fixed inset-0 bg-slate-900/95 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+            <div className="bg-slate-800 border border-slate-700 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col">
+              <div className="p-6 border-b border-slate-700 flex justify-between items-center bg-slate-800/50">
+                <h2 className="text-2xl font-black text-white flex items-center gap-2">
+                  <Play className="text-indigo-400 w-6 h-6" /> {t.tutorial.title}
+                </h2>
+                <button onClick={finishTutorial} className="text-slate-500 hover:text-slate-300 font-bold text-sm uppercase tracking-widest">{t.tutorial.skip}</button>
+              </div>
+
+              <div className="p-8 flex-1 flex flex-col items-center text-center space-y-6">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={tutorialStep}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                  >
+                    <div className="w-20 h-20 bg-indigo-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                      {tutorialStep === 1 && <Skull className="w-10 h-10 text-indigo-400" />}
+                      {tutorialStep === 2 && <Heart className="w-10 h-10 text-red-500" />}
+                      {tutorialStep === 3 && <Sword className="w-10 h-10 text-indigo-400" />}
+                      {tutorialStep === 4 && <Skull className="w-10 h-10 text-red-500" />}
+                      {tutorialStep === 5 && <RefreshCw className="w-10 h-10 text-amber-500" />}
+                    </div>
+                    <h3 className="text-2xl font-black text-white">{t.tutorial[`step${tutorialStep}_title`]}</h3>
+                    <p className="text-slate-400 leading-relaxed">{t.tutorial[`step${tutorialStep}_desc`]}</p>
+                  </motion.div>
+                </AnimatePresence>
+
+                <div className="flex gap-2 mt-4">
+                  {[1, 2, 3, 4, 5].map(step => (
+                    <div key={step} className={`w-2 h-2 rounded-full transition-all duration-300 ${tutorialStep === step ? 'w-8 bg-indigo-500' : 'bg-slate-700'}`} />
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-6 bg-slate-900/50 border-t border-slate-700 flex gap-3">
+                {tutorialStep > 1 && (
+                  <button 
+                    onClick={() => setTutorialStep(prev => prev - 1)}
+                    className="flex-1 bg-slate-800 hover:bg-slate-700 text-white font-bold py-4 rounded-2xl border border-slate-700 transition-colors"
+                  >
+                    {t.tutorial.prev}
+                  </button>
+                )}
+                {tutorialStep < 5 ? (
+                  <button 
+                    onClick={() => setTutorialStep(prev => prev + 1)}
+                    className="flex-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl shadow-lg transition-colors flex-grow"
+                  >
+                    {t.tutorial.next}
+                  </button>
+                ) : (
+                  <button 
+                    onClick={finishTutorial}
+                    className="flex-2 bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-2xl shadow-lg transition-colors flex-grow uppercase tracking-widest"
+                  >
+                    {t.tutorial.finish}
+                  </button>
                 )}
               </div>
             </div>
