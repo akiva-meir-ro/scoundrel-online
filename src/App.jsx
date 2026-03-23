@@ -17,6 +17,12 @@ const LOCALES = { en, he };
 
 const SKINS = [
   {
+        id: 'default', price: 0,
+        bg: 'bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]', border: 'border-slate-200',
+        goodColor: 'text-red-600', badColor: 'text-slate-900',
+        font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
+   },
+  {
     id: 'red', price: 10,
     bg: 'bg-red-600', border: 'border-red-400',
     goodColor: 'text-white', badColor: 'text-red-100',
@@ -62,12 +68,6 @@ const SKINS = [
     id: 'teal', price: 10,
     bg: 'bg-teal-600', border: 'border-teal-400',
     goodColor: 'text-white', badColor: 'text-teal-100',
-    font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
-  },
-  {
-    id: 'default', price: 0,
-    bg: 'bg-white bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:16px_16px]', border: 'border-slate-200',
-    goodColor: 'text-red-600', badColor: 'text-slate-900',
     font: 'font-sans', rounded: 'rounded-xl', shadow: 'shadow-lg'
   },
   {
