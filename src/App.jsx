@@ -3,7 +3,7 @@ import {
   Heart, Sword, ShieldAlert, Skull, Play, RefreshCw,
   Trophy, ChevronLeft, Link as LinkIcon, Check, LogOut, X, Home,
   ShoppingBag, Coins, Languages, User, UserCircle, Award, Volume2, VolumeX
-} from 'lucide-react';
+} from 'luעקצןמןcide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { fetchLeaderboard, submitScore, signup, login, saveProgress } from './leaderboardApi';
@@ -429,7 +429,7 @@ const INITIAL_STATS = {
 };
 
 export default function App() {
-  const [language, setLanguage] = useState('en');
+  const [language, setLanguage] = useState('he');
   const t = LOCALES[language];
 
   const [difficulty, setDifficulty] = useState('normal');
